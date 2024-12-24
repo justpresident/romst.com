@@ -8,9 +8,9 @@
   $mw: 90%,// max-width
   //$mb: 1200px,// value at which to switch from fluid layout to max-width
 
-  $abridgeMode: "switcher",//valid values: switcher, auto, dark, light
+  $abridgeMode: "light",//valid values: switcher, auto, dark, light
   $syntax-mode: "auto",// Force syntax mode: auto, dark, light
-  $switcherDefault: "dark",// default nojs switcher mode: dark, light (make sure to also set js_switcher_default in config.toml)
+  $switcherDefault: "light",// default nojs switcher mode: dark, light (make sure to also set js_switcher_default in config.toml)
 
   $color: "orange",// color template to use/override: orange, blue, blueshade
 

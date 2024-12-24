@@ -178,8 +178,8 @@ js_bundle = true # multiple javascript files combined into a single file (settin
 js_copycode = true # The copy button on code blocks that allows you to copy them to the clipboard.
 js_email_encode = true # obfuscates email address in footer
 js_prestyle = true # used to preload: FontAwesome, Katex, external Google Fonts
-js_switcher = true # The button that allows manually changing between light/dark mode.
-js_switcher_default = "dark" # default nojs switcher mode: dark, light (make sure to also set $switcherDefault in abridge.scss)
+js_switcher = false # The button that allows manually changing between light/dark mode.
+js_switcher_default = "light" # default nojs switcher mode: dark, light (make sure to also set $switcherDefault in abridge.scss)
 
 search_library = "elasticlunr"
 stylesheets = ["abridge.css"]
