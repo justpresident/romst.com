@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8" />
+<title>Oscillators</title>
+<!-- <script src="jquery&#45;3.6.0.min.js"></script> -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<style>
+    body {
+      font-family: 'Courier New', monospace;
+    }
+    .oscillator {
+        border-radius: 5px;
+        border: 2px solid teal;
+        padding: 20px;
+        display: inline-block;
+    }
+    .selected {
+        background: yellow;
+    }
+    .oscState {
+        display: inline-block;
+        width: 40%;
+        text-align: center;
+        border-radius: 5px;
+        background: green;
+        color: lightblue;
+    }
+    .oscState.muted {
+        background: darkred;
+    }
+
+    #oscillators {
+        margin: 0px;
+        margin-bottom: 10px;
+        padding: 0px;
+        display: inline-block;
+    }
+
+    .controls_help {
+        display: inline-block;
+        border-radius: 5px;
+        border: 3px solid black;
+        background: lightgrey;
+        padding: 10px;
+    }
+    .controls_help ul {
+        display: inline-block;
+        padding: 5px;
+        margin: 0px;
+    }
+    .controls_help li {
+        border: none;
+        display: inline-block;
+        padding: 5px;
+        margin: 2px;
+        float: left;
+    }
+    .controls_help li.btn {
+        border-radius: 5px;
+        border: 3px solid black;
+    }
+    .pressed {
+        background: olive;
+    }
+</style>
+</head>
+<body>
+<div id="oscillators">
+    <span class="oscillator">
+        Frequency: <span class="frequency"></span>
+        <br/>
+        <span class="oscState leftChannel">Left</span>
+        <span class="oscState rightChannel">Right</span>
+    </span>
+</div>
+<br/>
+<div class="controls_help">
+    <ul>
+        <li class=btn key=" " id="spaceBtn">Space</li>
+        <li>to start/stop</li>
+    </ul>
+    <br/>
+    <ul>
+        <li class=btn id="nBtn">N</li>
+        <li>to add oscillator</li>
+    </ul>
+    <br/>
+    <ul>
+        <li class=btn key="ArrowLeft" id="leftBtn">&larr;</li>
+        <li class=btn key="ArrowRight" id="rightBtn">&rarr;</li>
+        <li>to select</li>
+    </ul>
+    <br/>
+    <ul>
+        <li class=btn id="lBtn">L</li>
+        <li class=btn id="rBtn">R</li>
+        <li>to toggle left/right</li>
+    </ul>
+    <br/>
+    <ul>
+        <li class=btn id="qBtn">Q</li>
+        <li class=btn id="wBtn">W</li>
+        <li class=btn id="eBtn">E</li>
+        <li>to tune frequency up</li>
+    </ul>
+    <br/>
+    <ul>
+        <li class=btn id="aBtn">A</li>
+        <li class=btn id="sBtn">S</li>
+        <li class=btn id="dBtn">D</li>
+        <li>to tune frequency down</li>
+    </ul>
+    <br/>
+    <ul>
+        <li class=btn key="Shift" id="shiftBtn">&#8679;Shift</li>
+        <li>to select all</li>
+    </ul>
+</div>
+<div class="controls_help">
+        Use these buttons
+        <br/>
+        on the screen
+        <br/>
+        or on the keybord.
+        <br/>
+        <br/>
+        You can create as many
+        <br/>
+        oscillators as you want.
+        <br/>
+        <br/>
+        Frequency control buttons
+        <br/>
+        have different increments:
+        <br/>
+        Coarse / Normal / Fine.
+
+</div>
+<script type="text/javascript">
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const grossTune = 5;
+    const mediumTune = 0.5;
+    const fineTune = 0.05;
+    const keys = [
+        {key: "q", direction: "up",   tune: grossTune },
+        {key: "a", direction: "down", tune: grossTune },
+        {key: "w", direction: "up",   tune: mediumTune},
+        {key: "s", direction: "down", tune: mediumTune},
+        {key: "e", direction: "up",   tune: fineTune  },
+        {key: "d", direction: "down", tune: fineTune  }
+    ];
+
+    var oscillators = [];
+    var oscIndex = -1;
+    var shiftPressed = false;
+    var direction = "";
+    var speed = 1;
+
+    class SlowStartNode {
+        constructor(audioContext) {
+            this.node = audioCtx.createScriptProcessor(256, 2, 2);
+            this.node.state = [];
+            for (let i = 0; i < 2; i++) {
+                this.node.state[i] = {
+                    prevSample: 0.0,
+                    enabled: false,
+                    prevZeroes: 0,
+                    enabledFor: 0,
+                    fixingUp: false,
+                    fixingDown: false
+                };
+            }
+            this.node.onaudioprocess = function(audioProcessingEvent) {
+                var inputBuffer = audioProcessingEvent.inputBuffer;
+                var outputBuffer = audioProcessingEvent.outputBuffer;
+                const toFixSamplesNum = 5000.0;
+                for (var channel = 0; channel < outputBuffer.numberOfChannels; channel++) {
+                    var inputData = inputBuffer.getChannelData(channel);
+                    var outputData = outputBuffer.getChannelData(channel);
+                    var oscState = this.state[channel];
+                    // samples values are from -1 to 1
+                    for (var i = 0; i < inputBuffer.length; i++) {
+                        if (!oscState.enabled && oscState.prevZeroes > 5 && inputData[i] != 0) {
+                            oscState.fixingUp = true
+                            oscState.enabled = true;
+                            oscState.enabledFor = 0;
+                        } else if (!oscState.enabled) {
+                            oscState.fixingUp = false;
+                        }
+                        var isNextZero = ((i < inputBuffer.length -1) && inputData[i+1] == 0.0);
+                        if (!oscState.enabled && oscState.prevSample != 0.0 && inputData[i] == 0.0 && isNextZero) {
+                            oscState.fixingDown = true;
+                            oscState.enabled = true;
+                            oscState.enabledFor = 0;
+                        } else if (!oscState.enabled) {
+                            oscState.fixingDown = false;
+                        }
+                        if (oscState.enabled && oscState.fixingDown) {
+                            outputData[i] = oscState.prevSample * (toFixSamplesNum-oscState.enabledFor)/toFixSamplesNum;
+                        } else if (oscState.enabled && oscState.fixingUp) {
+                            outputData[i] = inputData[i]*oscState.enabledFor/toFixSamplesNum;
+                        } else {
+                            outputData[i] = inputData[i];
+                        }
+                        if (oscState.enabled) {
+                            oscState.enabledFor++;
+                            oscState.enabled = (oscState.enabledFor < toFixSamplesNum);
+                        }
+                        oscState.prevSample = outputData[i];
+
+                        if (inputData[i] == 0) {
+                            oscState.prevZeroes++;
+                        } else {
+                            oscState.prevZeroes = 0;
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    class Oscillator {
+        constructor(audioContext) {
+            this.node = audioContext.createOscillator();
+            this.gainNode = audioContext.createGain();
+            this.slowStartNode = new SlowStartNode(audioContext);
+            this.stereoPannerNode = audioContext.createStereoPanner();
+
+            this.node.connect(this.gainNode);
+            this.gainNode.connect(this.stereoPannerNode);
+            this.stereoPannerNode.connect(this.slowStartNode.node);
+            this.slowStartNode.node.connect(audioContext.destination);
+            // this.gainNode.connect(this.slowStartNode.node);
+            // this.slowStartNode.node.connect(this.stereoPannerNode);
+            // this.stereoPannerNode.connect(audioContext.destination);
+
+            this.volume = 0.8
+
+            this.node.frequency.value = 42;
+            this.node.type = "sine";
+            this.gainNode.gain.value = 0;
+            this.muted = true;
+
+
+            this.node.start();
+        }
+        muteToggle() {
+            if (this.muted) {
+                this.gainNode.gain.value = this.volume;
+            } else {
+                this.gainNode.gain.value = 0;
+            }
+            this.muted = !this.muted;
+        }
+        async leftToggle() {
+            if (this.muted) {
+                this.stereoPannerNode.pan.value = -1;
+                this.muteToggle();
+                return;
+            }
+            var panValue = this.stereoPannerNode.pan.value;
+            if (panValue == -1) {
+                this.muteToggle();
+                this.stereoPannerNode.pan.value = 0;
+            } else if (panValue == 1) {
+                this.stereoPannerNode.pan.value = 0;
+            } else {
+                this.stereoPannerNode.pan.value = 1;
+            }
+            updateUI();
+        }
+        async rightToggle() {
+            if (this.muted) {
+                this.stereoPannerNode.pan.value = 1;
+                this.muteToggle();
+                return;
+            }
+            var panValue = this.stereoPannerNode.pan.value;
+            if (panValue == 1) {
+                this.muteToggle();
+                this.stereoPannerNode.pan.value = 0;
+            } else if (panValue == -1) {
+                this.stereoPannerNode.pan.value = 0;
+            } else {
+                this.stereoPannerNode.pan.value = -1;
+            }
+            updateUI();
+        }
+    }
+
+    function doWithSelected(oscFn) {
+        for(let i = 0; i < oscillators.length; i++) {
+            if (shiftPressed || i == oscIndex) {
+                oscFn(oscillators[i]);
+            }
+        }
+    }
+
+    function manualLoop() {
+        setTimeout(function() {
+            manualLoop();         
+            if (direction == "up"){
+                doWithSelected(osc => osc.node.frequency.value += speed);
+                updateUI();
+            } else if (direction == "down"){
+                doWithSelected(osc => osc.node.frequency.value -= speed);
+                updateUI();
+            }
+        }, 40)
+    };
+
+    function updateUI() {
+        while ($(".oscillator").length < oscillators.length) {
+            var newOsc = $(".oscillator").last().clone(true);
+            newOsc.appendTo("#oscillators");
+        }
+
+        var uiOscillators = $(".oscillator");
+        for (let i = 0; i < oscillators.length; i++) {
+            var osc = uiOscillators.eq(i);
+            osc.toggleClass("selected", (shiftPressed || oscIndex == i))
+            osc.children(".leftChannel").toggleClass("muted",
+                    oscillators[i].muted
+                    || oscillators[i].stereoPannerNode.pan.value == 1
+                );
+            osc.children(".rightChannel").toggleClass("muted",
+                    oscillators[i].muted
+                    || oscillators[i].stereoPannerNode.pan.value == -1
+                );
+            osc.children(".frequency").html(oscillators[i].node.frequency.value.toFixed(2))
+        }
+    }
+
+    $(document).ready(function() {
+        oscillators.push(new Oscillator(audioCtx));
+        oscIndex = 0;
+        updateUI();
+        manualLoop();
+        $(".btn").mousedown(function() {
+            var key = $(this).html().toLowerCase();
+            if ($(this).attr("key") != undefined) {
+                key = $(this).attr("key");
+            }
+            processKeyDown(key);
+        });
+        $(".btn").mouseup(function() {
+            var key = $(this).html().toLowerCase();
+            if ($(this).attr("key") != undefined) {
+                key = $(this).attr("key");
+            }
+            processKeyUp(key);
+        });
+    }); 
+
+
+    function btnId(key) {
+        if (key == " ") {
+            return "#spaceBtn";
+        } else if (key == "Shift") {
+            return "#shiftBtn";
+        } else if (key == "ArrowLeft") {
+            return "#leftBtn";
+        } else if (key == "ArrowRight") {
+            return "#rightBtn";
+        } else {
+            return "#" + key + "Btn";
+        }
+    };
+
+    function processKeyDown(key) {
+        audioCtx.resume();
+        if (key == " ") { // space bar
+            doWithSelected(osc => osc.muteToggle());
+            updateUI();
+        } else if (key == "n") {
+            oscillators.push(new Oscillator(audioCtx));
+            oscIndex++;
+
+            updateUI();
+        } else if (key == "Shift") {
+            shiftPressed = !shiftPressed;
+            updateUI();
+        } else if (key == "ArrowLeft") {
+            oscIndex--;
+            if (oscIndex < 0) {
+                oscIndex = oscillators.length - 1;
+            }
+            updateUI();
+        } else if (key == "ArrowRight") {
+            oscIndex++;
+            if (oscIndex >= oscillators.length) {
+                oscIndex = 0;
+            }
+            updateUI();
+        } else if (key == "l") {
+            doWithSelected(osc => osc.leftToggle());
+            updateUI();
+        } else if (key == "r") {
+            doWithSelected(osc => osc.rightToggle());
+            updateUI();
+        } else {
+            for (var i = keys.length - 1; i >= 0; i--) {
+                if(key == keys[i].key) {
+                    direction = keys[i].direction;
+                    speed = keys[i].tune;
+                }
+            }
+        }
+        var buttonId = btnId(key)
+        $(buttonId).addClass("pressed");
+    }
+    function processKeyUp(key) {
+        $(btnId(key)).removeClass("pressed");
+        direction = "";
+        updateUI();
+    }
+
+    document.addEventListener('keydown', function(event) {
+        processKeyDown(event.key);
+    });
+
+    document.addEventListener('keyup', function(event) {
+        processKeyUp(event.key);
+    });    
+</script>
+</body>
+</html>
+

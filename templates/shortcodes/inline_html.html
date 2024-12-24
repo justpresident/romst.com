@@ -1,0 +1,6 @@
+{%- if src is matching("^http[s]?://") %}
+  {% set inline_data = load_data(url=src) %}
+{%- else %}
+  {% set inline_data = load_data(path=src) %}
+{%- endif %}
+{{ inline_data | safe }}

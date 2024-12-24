@@ -1,0 +1,50 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
+<canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+
+<script>
+
+const FROM=0;
+const TO=10000;
+const STEP=20
+const xValues = generateData("x", FROM, TO, STEP);
+
+new Chart("myChart", {
+  type: "line",
+  data: {
+    labels: xValues,
+    datasets: [
+    {
+      fill: false,
+      pointRadius: 1,
+      borderColor: "rgba(155,0,0,0.3)",
+      data: generateData("Math.sin(x/39.5)", FROM, TO, STEP),
+      label: "a = 39.5Hz",
+    },
+    {
+      fill: false,
+      pointRadius: 1,
+      borderColor: "rgba(0,0,155,0.3)",
+      data: generateData("Math.sin(x/40.5)", FROM, TO, STEP),
+      label: "b = 40.5Hz",
+    },
+    {
+      fill: false,
+      pointRadius: 1,
+      borderColor: "rgba(0,0,0,0.5)",
+      data: generateData("(Math.sin(x/39.5) + Math.sin(x/40.5))/2", FROM, TO, STEP),
+      label: "(a+b)/2",
+    },
+    ]
+  },    
+  options: {
+    legend: {display: true},
+  }
+});
+function generateData(value, i1, i2, step = 1) {
+  var result = [];
+  for (let x = i1; x <= i2; x += step) {
+    result.push(eval(value));
+  }
+  return result;
+}
+</script>
