@@ -5,7 +5,7 @@ build:
 	docker run -it --rm -p 1111:1111 -w /app -v $(PWD):/app zola build
 
 deploy:
-	ssh romst.com rm -rfv public
-	rsync -av public/* romst.com:nginx/webroot/html/
+	rsync -av public romst.com:
+	ssh romst.com rsync -av public nginx/webroot/html/
 
 .PHONY: serve build deploy
