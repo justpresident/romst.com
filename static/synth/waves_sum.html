@@ -1,9 +1,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
-<div style="background:#0a0a0a;padding:10px;border-radius:5px;border:1px solid #0f0;">
-<canvas id="myChart" style="width:100%;max-width:600px;background:#0a0a0a;"></canvas>
+<div style="background:#0f0f0f;padding:15px;border-radius:5px;border:1px solid #1a1a1a;">
+<canvas id="myChart" style="width:100%;max-width:700px;background:#0f0f0f;"></canvas>
 </div>
 <script>
-Chart.defaults.global.defaultFontColor = '#0f0';
+Chart.defaults.global.defaultFontColor = '#b0b0b0';
+Chart.defaults.global.defaultFontFamily = "'Courier New', monospace";
 
 const FROM=0;
 const TO=10000;
@@ -18,28 +19,58 @@ new Chart("myChart", {
     {
       fill: false,
       pointRadius: 1,
-      borderColor: "rgba(0,255,0,0.4)",
+      borderColor: "#00ffff",
+      borderWidth: 1.5,
       data: generateData("Math.sin(x/39.5)", FROM, TO, STEP),
       label: "a = 39.5Hz",
     },
     {
       fill: false,
       pointRadius: 1,
-      borderColor: "rgba(0,255,255,0.4)",
+      borderColor: "#ff66ff",
+      borderWidth: 1.5,
       data: generateData("Math.sin(x/40.5)", FROM, TO, STEP),
       label: "b = 40.5Hz",
     },
     {
       fill: false,
       pointRadius: 1,
-      borderColor: "rgba(0,255,0,0.9)",
+      borderColor: "#00ff88",
+      borderWidth: 2,
       data: generateData("(Math.sin(x/39.5) + Math.sin(x/40.5))/2", FROM, TO, STEP),
       label: "(a+b)/2",
     },
     ]
-  },    
+  },
   options: {
-    legend: {display: true},
+    legend: {
+      display: true,
+      labels: {
+        fontColor: '#b0b0b0',
+        padding: 15
+      }
+    },
+    scales: {
+      xAxes: [{
+        gridLines: {
+          color: '#1a1a1a',
+          zeroLineColor: '#333'
+        },
+        ticks: {
+          fontColor: '#606060',
+          maxTicksLimit: 10
+        }
+      }],
+      yAxes: [{
+        gridLines: {
+          color: '#1a1a1a',
+          zeroLineColor: '#333'
+        },
+        ticks: {
+          fontColor: '#606060'
+        }
+      }]
+    }
   }
 });
 function generateData(value, i1, i2, step = 1) {
