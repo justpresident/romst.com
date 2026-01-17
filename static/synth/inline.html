@@ -2,26 +2,31 @@
 <style>
     .synth_inline_body {
       font-family: 'Courier New', monospace;
+      background: #0a0a0a;
+      color: #0f0;
+      padding: 10px;
     }
     .oscillator {
         border-radius: 5px;
-        border: 2px solid teal;
+        border: 2px solid #0f0;
         padding: 20px;
         display: inline-block;
+        background: #111;
     }
     .selected {
-        background: yellow;
+        background: #1a1a1a;
+        box-shadow: 0 0 10px #0f0;
     }
     .oscState {
         display: inline-block;
         width: 40%;
         text-align: center;
         border-radius: 5px;
-        background: green;
-        color: lightblue;
+        background: #0a0;
+        color: #000;
     }
     .oscState.muted {
-        background: darkred;
+        background: #600;
     }
 
     #oscillators {
@@ -34,9 +39,10 @@
     .controls_help {
         display: inline-block;
         border-radius: 5px;
-        border: 3px solid black;
-        background: lightgrey;
+        border: 2px solid #0f0;
+        background: #111;
         padding: 10px;
+        color: #0f0;
     }
     .controls_help ul {
         display: inline-block;
@@ -52,10 +58,17 @@
     }
     .controls_help li.btn {
         border-radius: 5px;
-        border: 3px solid black;
+        border: 2px solid #0f0;
+        background: #1a1a1a;
+        color: #0f0;
+        cursor: pointer;
+    }
+    .controls_help li.btn:hover {
+        box-shadow: 0 0 5px #0f0;
     }
     .pressed {
-        background: olive;
+        background: #0f0 !important;
+        color: #000 !important;
     }
 </style>
 <div class="synth_inline_body">

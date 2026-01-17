@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Multiplication Tables Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px;
+    }
+
+    h1 {
+      color: white;
+      margin-bottom: 10px;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .header {
+      display: flex;
+      gap: 30px;
+      margin-bottom: 20px;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    .header span {
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+
+    .level-select {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .level-btn {
+      padding: 10px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.3);
+      color: white;
+      transition: all 0.2s;
+    }
+
+    .level-btn:hover:not(:disabled) {
+      background: rgba(255,255,255,0.5);
+      transform: scale(1.05);
+    }
+
+    .level-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .level-btn.active {
+      background: #4CAF50;
+      box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+    }
+
+    .level-btn.completed {
+      background: #2196F3;
+    }
+
+    .grid-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .col-headers {
+      display: flex;
+      gap: 4px;
+      margin-left: 32px;
+    }
+
+    .col-header {
+      width: 50px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(180deg, #667eea 0%, #5a6fd6 100%);
+      border-radius: 6px 6px 0 0;
+    }
+
+    .row-header {
+      width: 28px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(90deg, #764ba2 0%, #6a4190 100%);
+      border-radius: 6px 0 0 6px;
+    }
+
+    .main-grid-area {
+      display: flex;
+    }
+
+    .row-headers {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      padding-top: 4px;
+    }
+
+    .grid-container {
+      position: relative;
+      background: rgba(255,255,255,0.95);
+      border-radius: 4px 8px 8px 8px;
+      padding: 0px;
+      top: 2px;
+      left: 2px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .grid {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .grid-cells-row {
+      display: flex;
+      gap: 4px;
+    }
+
+    .cell {
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: bold;
+      border-radius: 6px;
+      background: #e0e0e0;
+      color: #333;
+      transition: background 0.3s;
+    }
+
+    .cell.solved {
+      background: #81C784;
+      color: white;
+    }
+
+    .cell.just-solved {
+      animation: solvedCelebration 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    @keyframes solvedCelebration {
+      0% {
+        transform: scale(0.8);
+      }
+      50% {
+        transform: scale(1.15);
+      }
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    .cell.pre-solved {
+      background: #e0e0e0;
+      color: white;
+      box-shadow: none;
+    }
+
+    .cell.active {
+      background: #FFD54F;
+    }
+
+    /* Popup overlay */
+    .popup-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .popup-overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup {
+      position: fixed;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      pointer-events: none;
+      transform: translate(-50%, -50%) scale(0);
+    }
+
+    .popup.at-cell {
+      transform: translate(-50%, -50%) scale(0);
+      transition: none;
+    }
+
+    .popup.at-center {
+      transform: translate(-50%, -50%) scale(1);
+      pointer-events: auto;
+      transition: transform 0.4s cubic-bezier(0.34, 1.4, 0.64, 1),
+                  left 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+                  top 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    .popup.shrinking {
+      transform: translate(-50%, -50%) scale(0);
+      pointer-events: none;
+      transition: transform 0.35s cubic-bezier(0.4, 0, 0.6, 1),
+                  left 0.35s cubic-bezier(0.4, 0, 0.6, 1),
+                  top 0.35s cubic-bezier(0.4, 0, 0.6, 1);
+    }
+
+    .popup .question {
+      font-size: 3rem;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
+    .popup input {
+      font-size: 2rem;
+      width: 150px;
+      padding: 10px;
+      text-align: center;
+      border: 3px solid #667eea;
+      border-radius: 10px;
+      outline: none;
+    }
+
+    .popup input:focus {
+      border-color: #4CAF50;
+    }
+
+    .popup .feedback {
+      margin-top: 15px;
+      font-size: 1.5rem;
+      min-height: 40px;
+    }
+
+    .popup .feedback.correct {
+      color: #4CAF50;
+    }
+
+    .popup .feedback.wrong {
+      color: #f44336;
+    }
+
+    /* Result screen */
+    .result-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 200;
+    }
+
+    .result-screen.visible {
+      display: flex;
+    }
+
+    .result-content {
+      background: white;
+      border-radius: 20px;
+      padding: 50px;
+      text-align: center;
+    }
+
+    .result-content h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    .result-content.success h2 {
+      color: #4CAF50;
+    }
+
+    .result-content.failure h2 {
+      color: #f44336;
+    }
+
+    .result-content p {
+      font-size: 1.3rem;
+      color: #666;
+      margin-bottom: 10px;
+    }
+
+    .result-content button {
+      margin-top: 20px;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #667eea;
+      color: white;
+      transition: transform 0.2s;
+    }
+
+    .result-content button:hover {
+      transform: scale(1.05);
+    }
+
+    .start-btn {
+      padding: 15px 40px;
+      font-size: 1.3rem;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #4CAF50;
+      color: white;
+      margin-top: 20px;
+      transition: transform 0.2s;
+    }
+
+    .start-btn:hover {
+      transform: scale(1.05);
+    }
+
+    .start-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .dev-btn {
+      position: fixed;
+      bottom: 15px;
+      right: 15px;
+      padding: 8px 12px;
+      font-size: 0.75rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      background: rgba(255,255,255,0.2);
+      color: rgba(255,255,255,0.6);
+      transition: all 0.2s;
+    }
+
+    .dev-btn:hover {
+      background: rgba(255,255,255,0.3);
+      color: white;
+    }
+
+    /* Level rules section */
+    .level-rules {
+      background: rgba(255,255,255,0.15);
+      border-radius: 10px;
+      padding: 15px 25px;
+      margin-top: 15px;
+      color: white;
+      text-align: center;
+      max-width: 400px;
+    }
+
+    .level-rules h3 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .level-rules p {
+      margin: 5px 0;
+      font-size: 0.95rem;
+      opacity: 0.9;
+    }
+
+    /* Game stats bar (shown during gameplay) */
+    .game-stats {
+      display: none;
+      gap: 30px;
+      margin-bottom: 20px;
+      color: white;
+      font-size: 1.2rem;
+    }
+
+    .game-stats.visible {
+      display: flex;
+    }
+
+    .game-stats span {
+      background: rgba(255,255,255,0.2);
+      padding: 8px 16px;
+      border-radius: 8px;
+    }
+
+    .game-stats .lives-container {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .game-stats .lives-label {
+      margin-right: 6px;
+    }
+
+    .game-stats .life-icon {
+      font-size: 1.6rem;
+      filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.5));
+      transition: all 0.2s;
+    }
+
+    .game-stats .life-icon.losing {
+      animation: loseLife 1.2s ease-out forwards;
+    }
+
+    @keyframes loseLife {
+      0% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      10% {
+        opacity: 0.3;
+        transform: scale(1.1);
+      }
+      20% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      30% {
+        opacity: 0.3;
+        transform: scale(1.1);
+      }
+      40% {
+        opacity: 1;
+        transform: scale(1);
+      }
+      50% {
+        opacity: 0.3;
+        transform: scale(1.1);
+      }
+      60% {
+        opacity: 1;
+        transform: scale(1.2);
+      }
+      100% {
+        opacity: 0;
+        transform: scale(2.5);
+        filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0));
+      }
+    }
+
+    .level-select, .header, .level-rules, .start-btn, .game-stats {
+      transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .level-select.hidden,
+    .header.hidden,
+    .level-rules.hidden,
+    .start-btn.hidden {
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+      position: absolute;
+      visibility: hidden;
+    }
+
+    .game-stats {
+      opacity: 0;
+      transform: translateY(-10px);
+      pointer-events: none;
+      position: absolute;
+      visibility: hidden;
+    }
+
+    .game-stats.visible {
+      opacity: 1;
+      transform: translateY(0);
+      pointer-events: auto;
+      position: static;
+      visibility: visible;
+    }
+
+    /* Popup timer */
+    .popup-timer {
+      font-size: 1.8rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #667eea;
+    }
+
+    .popup-timer.warning {
+      color: #ff9800;
+    }
+
+    .popup-timer.danger {
+      color: #f44336;
+      animation: pulse 0.5s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+  </style>
+</head>
+<body>
+  <h1>Multiplication Tables</h1>
+
+  <div class="header" id="header">
+    <span>Level: <strong id="current-level">1</strong></span>
+    <span>Cells: <strong id="total-count">0</strong></span>
+  </div>
+
+  <div class="game-stats" id="game-stats">
+    <span class="lives-container"><span class="lives-label">Lives:</span><span id="lives-icons"></span></span>
+    <span>Solved: <strong id="solved-count">0</strong>/<strong id="game-total-count">0</strong></span>
+    <span>Avg: <strong id="avg-time">0.0s</strong></span>
+  </div>
+
+  <div class="level-select" id="level-select"></div>
+
+  <div class="grid-wrapper">
+    <div class="col-headers" id="col-headers"></div>
+    <div class="main-grid-area">
+      <div class="row-headers" id="row-headers"></div>
+      <div class="grid-container">
+        <div class="grid" id="grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <button class="start-btn" id="start-btn">Start Game</button>
+
+  <div class="level-rules" id="level-rules">
+    <h3>Level Rules</h3>
+    <p id="rules-time"></p>
+    <p id="rules-lives"></p>
+  </div>
+
+  <button class="dev-btn" id="dev-btn">Dev Mode</button>
+
+  <div class="popup-overlay" id="popup-overlay">
+    <div class="popup" id="popup">
+      <div class="popup-timer" id="popup-timer">5</div>
+      <div class="question" id="question">5 × 7 = ?</div>
+      <input type="number" id="answer-input" autocomplete="off">
+      <div class="feedback" id="feedback"></div>
+    </div>
+  </div>
+
+  <div class="result-screen" id="result-screen">
+    <div class="result-content" id="result-content">
+      <h2 id="result-title">Level Complete!</h2>
+      <p id="result-time">Time: 1:23</p>
+      <p id="result-accuracy">Accuracy: 95%</p>
+      <button id="next-btn">Continue</button>
+    </div>
+  </div>
+
+  <script>
+    // Level configurations
+    const LEVELS = [
+      {
+        id: 1,
+        name: "Level 1",
+        gridSize: 5,
+        preSolved: (a, b) => false,
+        flowType: "random",
+        secondsPerCell: 8,
+        lives: 5
+      },
+      {
+        id: 2,
+        name: "Level 2",
+        gridSize: 7,
+        preSolved: (a, b) => a < 2 || b < 2 || a > 6 || b > 6,
+        flowType: "random",
+        secondsPerCell: 6,
+        lives: 4
+      },
+      {
+        id: 3,
+        name: "Level 3",
+        gridSize: 7,
+        preSolved: (a, b) => a < 2 || b < 2 || (a < 4 && b < 4),
+        flowType: "random",
+        secondsPerCell: 5,
+        lives: 4
+      },
+      {
+        id: 4,
+        name: "Level 4",
+        gridSize: 8,
+        preSolved: (a, b) => a*b < 12,
+        flowType: "random",
+        secondsPerCell: 5,
+        lives: 3
+      },
+      {
+        id: 5,
+        name: "Level 5",
+        gridSize: 10,
+        preSolved: (a, b) => a*b <= 12,
+        flowType: "random",
+        secondsPerCell: 4,
+        lives: 3
+      },
+      {
+        id: 6,
+        name: "Level 6",
+        gridSize: 12,
+        preSolved: (a, b) => a <= 3 || b <= 3 ||  a*b < 15 || (a <= 5 && b <= 5),
+        flowType: "random",
+        secondsPerCell: 4,
+        lives: 2
+      }
+    ];
+
+    // Game state
+    let state = {
+      currentLevel: null,
+      cells: [],
+      queue: [],
+      currentCell: null,
+      solved: 0,
+      totalToSolve: 0,
+      lives: 0,
+      cellTimerInterval: null,
+      cellStartTime: null,
+      cellTimeRemaining: 0,
+      totalSolveTime: 0,
+      isPlaying: false,
+      unlockedLevels: [1]
+    };
+
+    // DOM elements
+    const grid = document.getElementById('grid');
+    const colHeaders = document.getElementById('col-headers');
+    const rowHeaders = document.getElementById('row-headers');
+    const startBtn = document.getElementById('start-btn');
+    const popupOverlay = document.getElementById('popup-overlay');
+    const popup = document.getElementById('popup');
+    const questionEl = document.getElementById('question');
+    const answerInput = document.getElementById('answer-input');
+    const feedback = document.getElementById('feedback');
+    const popupTimerEl = document.getElementById('popup-timer');
+    const header = document.getElementById('header');
+    const gameStats = document.getElementById('game-stats');
+    const livesIconsEl = document.getElementById('lives-icons');
+    const solvedCountEl = document.getElementById('solved-count');
+    const gameTotalCountEl = document.getElementById('game-total-count');
+    const avgTimeEl = document.getElementById('avg-time');
+    const totalCountEl = document.getElementById('total-count');
+    const currentLevelEl = document.getElementById('current-level');
+    const levelSelect = document.getElementById('level-select');
+    const levelRules = document.getElementById('level-rules');
+    const rulesTime = document.getElementById('rules-time');
+    const rulesLives = document.getElementById('rules-lives');
+    const resultScreen = document.getElementById('result-screen');
+    const resultContent = document.getElementById('result-content');
+    const resultTitle = document.getElementById('result-title');
+    const resultTime = document.getElementById('result-time');
+    const resultAccuracy = document.getElementById('result-accuracy');
+    const nextBtn = document.getElementById('next-btn');
+
+    // Load progress from localStorage
+    function loadProgress() {
+      const saved = localStorage.getItem('multiplicationGame');
+      if (saved) {
+        const data = JSON.parse(saved);
+        state.unlockedLevels = data.unlockedLevels || [1];
+      }
+    }
+
+    // Save progress to localStorage
+    function saveProgress() {
+      localStorage.setItem('multiplicationGame', JSON.stringify({
+        unlockedLevels: state.unlockedLevels
+      }));
+    }
+
+    // Check if a level is unlocked
+    function isUnlocked(levelId) {
+      return state.unlockedLevels.includes(levelId);
+    }
+
+    // Check if a level is completed
+    function isCompleted(levelId) {
+      return state.unlockedLevels.includes(levelId + 1);
+    }
+
+    // Mark a level as completed (unlocks next level)
+    function setCompleted(levelId) {
+      const nextLevelId = levelId + 1;
+      if (!state.unlockedLevels.includes(nextLevelId) && nextLevelId <= LEVELS.length) {
+        state.unlockedLevels.push(nextLevelId);
+        saveProgress();
+      }
+    }
+
+    // Unlock all levels (dev mode)
+    function unlockAllLevels() {
+      LEVELS.forEach(level => {
+        if (!state.unlockedLevels.includes(level.id)) {
+          state.unlockedLevels.push(level.id);
+        }
+      });
+      renderLevelSelect();
+    }
+
+    // Render level selection buttons
+    function renderLevelSelect() {
+      levelSelect.innerHTML = '';
+      LEVELS.forEach(level => {
+        const btn = document.createElement('button');
+        btn.className = 'level-btn';
+        btn.textContent = level.name;
+
+        btn.disabled = !isUnlocked(level.id);
+        if (isCompleted(level.id)) btn.classList.add('completed');
+        if (state.currentLevel && state.currentLevel.id === level.id) {
+          btn.classList.add('active');
+        }
+
+        btn.addEventListener('click', () => selectLevel(level));
+        levelSelect.appendChild(btn);
+      });
+    }
+
+    // Select a level
+    function selectLevel(level) {
+      state.currentLevel = level;
+      state.isPlaying = false;
+      clearInterval(state.cellTimerInterval);
+      initGrid();
+      renderLevelSelect();
+      currentLevelEl.textContent = level.id;
+      startBtn.disabled = false;
+
+      // Show level rules
+      rulesTime.textContent = `${level.secondsPerCell} seconds per question`;
+      rulesLives.textContent = `${level.lives} lives (mistakes allowed)`;
+
+      // Show pre-game UI, hide game UI
+      header.classList.remove('hidden');
+      levelSelect.classList.remove('hidden');
+      levelRules.classList.remove('hidden');
+      startBtn.classList.remove('hidden');
+      gameStats.classList.remove('visible');
+    }
+
+    // Initialize the grid
+    function initGrid() {
+      const level = state.currentLevel;
+      if (!level) return;
+
+      grid.innerHTML = '';
+      colHeaders.innerHTML = '';
+      rowHeaders.innerHTML = '';
+
+      state.cells = [];
+      state.solved = 0;
+      state.totalToSolve = 0;
+
+      // Create column headers (outside grid)
+      for (let col = 1; col <= level.gridSize; col++) {
+        const headerCell = document.createElement('div');
+        headerCell.className = 'col-header';
+        headerCell.textContent = col;
+        colHeaders.appendChild(headerCell);
+      }
+
+      // Create row headers (outside grid)
+      for (let row = 1; row <= level.gridSize; row++) {
+        const rowHeader = document.createElement('div');
+        rowHeader.className = 'row-header';
+        rowHeader.textContent = row;
+        rowHeaders.appendChild(rowHeader);
+      }
+
+      // Create grid cells
+      for (let row = 1; row <= level.gridSize; row++) {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'grid-cells-row';
+
+        for (let col = 1; col <= level.gridSize; col++) {
+          const cell = document.createElement('div');
+          const isPreSolved = level.preSolved(row, col);
+
+          cell.className = 'cell';
+          cell.dataset.row = row;
+          cell.dataset.col = col;
+
+          if (isPreSolved) {
+            cell.classList.add('pre-solved');
+          } else {
+            cell.textContent = `${row}×${col}`;
+            state.totalToSolve++;
+          }
+
+          state.cells.push({
+            element: cell,
+            row,
+            col,
+            solved: isPreSolved,
+            preSolved: isPreSolved
+          });
+
+          rowDiv.appendChild(cell);
+        }
+
+        grid.appendChild(rowDiv);
+      }
+
+      totalCountEl.textContent = state.totalToSolve;
+    }
+
+    // Build question queue
+    function buildQueue() {
+      const level = state.currentLevel;
+      const unsolved = state.cells.filter(c => !c.preSolved);
+
+      if (level.flowType === 'random') {
+        // Shuffle array
+        for (let i = unsolved.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [unsolved[i], unsolved[j]] = [unsolved[j], unsolved[i]];
+        }
+      }
+
+      state.queue = unsolved;
+    }
+
+    // Render lives as heart icons
+    function renderLives() {
+      livesIconsEl.innerHTML = '';
+      for (let i = 0; i < state.lives; i++) {
+        const icon = document.createElement('span');
+        icon.className = 'life-icon';
+        icon.textContent = '❤️';
+        icon.dataset.index = i;
+        livesIconsEl.appendChild(icon);
+      }
+    }
+
+    // Animate losing a life
+    function animateLoseLife() {
+      const icons = livesIconsEl.querySelectorAll('.life-icon');
+      if (icons.length > 0) {
+        const lastIcon = icons[icons.length - 1];
+        lastIcon.classList.add('losing');
+        lastIcon.addEventListener('animationend', () => {
+          lastIcon.remove();
+        }, { once: true });
+      }
+    }
+
+    // Start the game
+    function startGame() {
+      if (!state.currentLevel) return;
+
+      const level = state.currentLevel;
+      state.isPlaying = true;
+      state.solved = 0;
+      state.lives = level.lives;
+      state.totalSolveTime = 0;
+
+      // Reset cell states
+      state.cells.forEach(cell => {
+        if (!cell.preSolved) {
+          cell.solved = false;
+          cell.element.classList.remove('solved');
+          cell.element.textContent = `${cell.row}×${cell.col}`;
+        }
+      });
+
+      // Switch to game UI
+      header.classList.add('hidden');
+      levelSelect.classList.add('hidden');
+      levelRules.classList.add('hidden');
+      startBtn.classList.add('hidden');
+      gameStats.classList.add('visible');
+
+      // Update game stats display
+      renderLives();
+      solvedCountEl.textContent = '0';
+      gameTotalCountEl.textContent = state.totalToSolve;
+      avgTimeEl.textContent = '0.0s';
+
+      buildQueue();
+
+      // Delay before first question so user can see UI transition
+      setTimeout(() => {
+        showNextQuestion();
+      }, 600);
+    }
+
+    // Cell timer functions
+    function startCellTimer() {
+      const level = state.currentLevel;
+      state.cellTimeRemaining = level.secondsPerCell;
+      state.cellStartTime = Date.now();
+      updateCellTimerDisplay();
+
+      state.cellTimerInterval = setInterval(() => {
+        const elapsed = (Date.now() - state.cellStartTime) / 1000;
+        state.cellTimeRemaining = Math.max(0, level.secondsPerCell - elapsed);
+        updateCellTimerDisplay();
+
+        if (state.cellTimeRemaining <= 0) {
+          clearInterval(state.cellTimerInterval);
+          handleTimeout();
+        }
+      }, 100);
+    }
+
+    function stopCellTimer() {
+      clearInterval(state.cellTimerInterval);
+      return state.currentLevel.secondsPerCell - state.cellTimeRemaining;
+    }
+
+    function updateCellTimerDisplay() {
+      const time = Math.ceil(state.cellTimeRemaining);
+      popupTimerEl.textContent = time;
+
+      popupTimerEl.classList.remove('warning', 'danger');
+      if (time <= 2) {
+        popupTimerEl.classList.add('danger');
+      } else if (time <= 3) {
+        popupTimerEl.classList.add('warning');
+      }
+    }
+
+    function handleTimeout() {
+      if (!state.isPlaying) return;
+      loseLife('Time\'s up!');
+    }
+
+    function loseLife(message) {
+      stopCellTimer();
+      state.lives--;
+
+      feedback.textContent = `✗ ${message}`;
+      feedback.className = 'feedback wrong';
+
+      // Move to end of queue
+      const idx = state.queue.indexOf(state.currentCell);
+      if (idx > -1) {
+        state.queue.splice(idx, 1);
+        state.queue.push(state.currentCell);
+      }
+
+      setTimeout(() => {
+        hidePopup(() => {
+          // Animate heart loss after popup shrinks
+          animateLoseLife();
+
+          if (state.lives <= 0) {
+            // Wait for heart animation to complete before showing game over
+            setTimeout(() => {
+              endGame(false, 'No lives left!');
+            }, 1300);
+          } else {
+            // Wait for heart animation before next question
+            setTimeout(() => showNextQuestion(), 1300);
+          }
+        });
+      }, 600);
+    }
+
+    function updateAvgTime() {
+      if (state.solved > 0) {
+        const avg = state.totalSolveTime / state.solved;
+        avgTimeEl.textContent = avg.toFixed(1) + 's';
+      }
+    }
+
+    // Get center position of an element
+    function getElementCenter(el) {
+      const rect = el.getBoundingClientRect();
+      return {
+        x: rect.left + rect.width / 2,
+        y: rect.top + rect.height / 2
+      };
+    }
+
+    // Show next question
+    function showNextQuestion() {
+      // Find next unsolved cell
+      const nextCell = state.queue.find(c => !c.solved);
+
+      if (!nextCell) {
+        // All solved
+        endGame(true);
+        return;
+      }
+
+      state.currentCell = nextCell;
+      nextCell.element.classList.add('active');
+
+      // Show popup
+      questionEl.textContent = `${nextCell.row} × ${nextCell.col} = ?`;
+      feedback.textContent = '';
+      feedback.className = 'feedback';
+      answerInput.value = '';
+      popupTimerEl.textContent = state.currentLevel.secondsPerCell;
+      popupTimerEl.classList.remove('warning', 'danger');
+
+      // Position popup at cell center, starting small
+      const cellCenter = getElementCenter(nextCell.element);
+      popup.classList.remove('at-center', 'shrinking');
+      popup.classList.add('at-cell');
+      popup.style.left = cellCenter.x + 'px';
+      popup.style.top = cellCenter.y + 'px';
+
+      popupOverlay.classList.add('visible');
+
+      // Force reflow to apply initial position
+      popup.offsetHeight;
+
+      // Single smooth animation to center
+      popup.classList.remove('at-cell');
+      popup.classList.add('at-center');
+      popup.style.left = (window.innerWidth / 2) + 'px';
+      popup.style.top = (window.innerHeight / 2) + 'px';
+
+      setTimeout(() => {
+        answerInput.focus();
+        startCellTimer();
+      }, 350);
+    }
+
+    // Hide popup - animate back to cell
+    function hidePopup(onComplete, hideOverlay = false) {
+      if (!state.currentCell) {
+        if (hideOverlay) popupOverlay.classList.remove('visible');
+        if (onComplete) onComplete();
+        return;
+      }
+
+      // Animate back to cell position
+      const cellCenter = getElementCenter(state.currentCell.element);
+      popup.classList.remove('at-center', 'at-cell');
+      popup.classList.add('shrinking');
+      popup.style.left = cellCenter.x + 'px';
+      popup.style.top = cellCenter.y + 'px';
+
+      setTimeout(() => {
+        if (hideOverlay) popupOverlay.classList.remove('visible');
+        popup.classList.remove('shrinking');
+        state.currentCell.element.classList.remove('active');
+        if (onComplete) onComplete();
+      }, 350);
+    }
+
+    // Submit answer
+    function submitAnswer() {
+      if (!state.currentCell || !state.isPlaying) return;
+
+      const answer = parseInt(answerInput.value);
+      const correct = state.currentCell.row * state.currentCell.col;
+      const solveTime = stopCellTimer();
+
+      if (answer === correct) {
+        // Correct
+        feedback.textContent = '✓ Correct!';
+        feedback.className = 'feedback correct';
+
+        const solvedCell = state.currentCell;
+        solvedCell.solved = true;
+        state.solved++;
+        state.totalSolveTime += solveTime;
+        solvedCountEl.textContent = state.solved;
+        updateAvgTime();
+
+        setTimeout(() => {
+          hidePopup(() => {
+            // Celebration animation on cell
+            solvedCell.element.classList.add('solved', 'just-solved');
+            solvedCell.element.textContent = correct;
+
+            // Remove animation class after it completes
+            setTimeout(() => {
+              solvedCell.element.classList.remove('just-solved');
+            }, 500);
+
+            // Show next question after a brief pause
+            setTimeout(() => showNextQuestion(), 450);
+          });
+        }, 300);
+      } else {
+        // Wrong answer - lose a life
+        loseLife('Wrong answer!');
+      }
+    }
+
+    // End game
+    function endGame(success, message) {
+      state.isPlaying = false;
+      clearInterval(state.cellTimerInterval);
+      hidePopup(null, true);
+
+      const avgTime = state.solved > 0 ? (state.totalSolveTime / state.solved).toFixed(1) : 0;
+
+      setTimeout(() => {
+        resultContent.className = 'result-content ' + (success ? 'success' : 'failure');
+        resultTitle.textContent = success ? 'Level Complete!' : (message || 'Level Failed');
+        resultTime.textContent = `Avg time: ${avgTime}s per question`;
+        resultAccuracy.textContent = `Solved: ${state.solved}/${state.totalToSolve} | Lives left: ${state.lives}`;
+
+        if (success) {
+          // Unlock next level
+          setCompleted(state.currentLevel.id);
+          const nextLevelId = state.currentLevel.id + 1;
+          nextBtn.textContent = nextLevelId <= LEVELS.length ? 'Next Level' : 'Play Again';
+        } else {
+          nextBtn.textContent = 'Try Again';
+        }
+
+        resultScreen.classList.add('visible');
+        renderLevelSelect();
+      }, 500);
+    }
+
+    // Close result screen
+    function closeResultScreen() {
+      resultScreen.classList.remove('visible');
+
+      const nextLevelId = state.currentLevel.id + 1;
+      const nextLevel = LEVELS.find(l => l.id === nextLevelId);
+
+      if (resultContent.classList.contains('success') && nextLevel && isUnlocked(nextLevelId)) {
+        selectLevel(nextLevel);
+      } else {
+        selectLevel(state.currentLevel);
+      }
+    }
+
+    // DOM element for dev button
+    const devBtn = document.getElementById('dev-btn');
+
+    // Event listeners
+    startBtn.addEventListener('click', startGame);
+    nextBtn.addEventListener('click', closeResultScreen);
+    devBtn.addEventListener('click', unlockAllLevels);
+
+    answerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        submitAnswer();
+      }
+    });
+
+    // Prevent popup close on overlay click during game
+    popupOverlay.addEventListener('click', (e) => {
+      if (e.target === popupOverlay && !state.isPlaying) {
+        hidePopup();
+      }
+    });
+
+    // Initialize
+    loadProgress();
+    selectLevel(LEVELS[0]);
+  </script>
+</body>
+</html>

@@ -1,0 +1,124 @@
+{#
+Custom Home Page Template
+Shows recent blog posts with a Projects sidebar
+#}
+
+{%- extends "base.html" %}
+{%- set uglyurls = config.extra.uglyurls | default(value=false) -%}
+{%- if config.extra.search_library %}{%- if config.extra.search_library == "offline" %}{% set uglyurls = true %}{% endif %}{% endif %}
+
+
+{%- block seo %}
+  {{- super() }}
+
+  {%- if config.title %}
+    {%- set title = config.title %}
+  {%- else %}
+    {%- set title = "" %}
+  {%- endif %}
+
+  {%- if config.extra.title_addition and title %}
+    {%- set title_addition = title_separator ~ config.extra.title_addition %}
+  {%- elif config.extra.title_addition %}
+    {%- set title_addition = config.extra.title_addition %}
+  {%- else %}
+    {%- set title_addition = "" %}
+  {%- endif %}
+
+  {%- set description = config.description %}
+
+  {{- macros_seo::seo(config=config, title=title, title_addition=title_addition, description=description, is_home=true) }}
+{%- endblock seo %}
+
+
+
+{%- block content %}
+    {# Load blog section #}
+    {%- set blog_section = get_section(path="blog/_index.md") %}
+
+    <div>
+    <h2>Recent Posts</h2>
+    {%- for page in blog_section.pages | slice(end=10) %}
+      <article>
+        {{- macros::title_index(page=page, config=config) }}
+        {%- if config.extra.meta_index.position %}
+        {%- if config.extra.meta_index.position == "top" or config.extra.meta_index.position == "both" %}
+        {{- macros::meta_index(page=page, config=config) }}
+        {%- endif %}{%- endif %}
+        <div class="sum">
+        <p>
+        {%- if page.summary %}
+          {{ page.summary | markdown(inline=true) | safe }}
+        {%- elif page.description %}
+          {{ page.description | safe }}
+        {%- elif page.content %}
+          {{ page.content | striptags | truncate(length=150) | safe }}
+        {%- elif page.extra.static_thumbnail %}
+        {%- endif %}
+          <a href="{{ page.permalink | safe }}{%- if uglyurls %}index.html{%- endif %}">
+            ...{{ macros::translate(key="more", default="more", i18n=i18n) }}
+          </a>
+        </div>
+        {%- if config.extra.meta_index.position %}
+        {%- if config.extra.meta_index.position == "bottom" or config.extra.meta_index.position == "both" %}
+        {{- macros::meta_index(page=page, config=config) }}
+        {%- endif %}
+        {%- endif %}
+      </article>
+    {%- endfor %}
+
+    {%- if blog_section.pages | length > 10 %}
+    <p><a href="{{ get_url(path='blog') | safe }}">View all posts...</a></p>
+    {%- endif %}
+    </div>
+
+    {# Projects Sidebar #}
+    {%- set projects_section = get_section(path="projects/_index.md") %}
+    {%- if projects_section.pages %}
+    <div class="sblock">
+      <div class="blockdiv sticky">
+        <span class="b s150">Projects</span>
+        {# Group projects by extra.group #}
+        {%- set games = [] %}
+        {%- set audio = [] %}
+        {%- set other = [] %}
+        {%- for project in projects_section.pages %}
+          {%- if project.extra.group == "Games" %}
+            {%- set_global games = games | concat(with=project) %}
+          {%- elif project.extra.group == "Audio" %}
+            {%- set_global audio = audio | concat(with=project) %}
+          {%- else %}
+            {%- set_global other = other | concat(with=project) %}
+          {%- endif %}
+        {%- endfor %}
+
+        {%- if games | length > 0 %}
+        <div class="tpad"><strong class="s90">Games</strong></div>
+        {%- for project in games %}
+        <div class="tpad">
+          <a href="{{ project.extra.project_url | safe }}" title="{{ project.description }}">{{ project.title }}</a>
+        </div>
+        {%- endfor %}
+        {%- endif %}
+
+        {%- if audio | length > 0 %}
+        <div class="tpad"><strong class="s90">Audio</strong></div>
+        {%- for project in audio %}
+        <div class="tpad">
+          <a href="{{ project.extra.project_url | safe }}" title="{{ project.description }}">{{ project.title }}</a>
+        </div>
+        {%- endfor %}
+        {%- endif %}
+
+        {%- if other | length > 0 %}
+        <div class="tpad"><strong class="s90">Other</strong></div>
+        {%- for project in other %}
+        <div class="tpad">
+          <a href="{{ project.extra.project_url | safe }}" title="{{ project.description }}">{{ project.title }}</a>
+        </div>
+        {%- endfor %}
+        {%- endif %}
+      </div>
+    </div>
+    {%- endif %}
+{%- endblock content %}

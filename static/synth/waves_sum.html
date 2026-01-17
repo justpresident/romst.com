@@ -1,7 +1,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>
-<canvas id="myChart" style="width:100%;max-width:600px"></canvas>
-
+<div style="background:#0a0a0a;padding:10px;border-radius:5px;border:1px solid #0f0;">
+<canvas id="myChart" style="width:100%;max-width:600px;background:#0a0a0a;"></canvas>
+</div>
 <script>
+Chart.defaults.global.defaultFontColor = '#0f0';
 
 const FROM=0;
 const TO=10000;
@@ -16,21 +18,21 @@ new Chart("myChart", {
     {
       fill: false,
       pointRadius: 1,
-      borderColor: "rgba(155,0,0,0.3)",
+      borderColor: "rgba(0,255,0,0.4)",
       data: generateData("Math.sin(x/39.5)", FROM, TO, STEP),
       label: "a = 39.5Hz",
     },
     {
       fill: false,
       pointRadius: 1,
-      borderColor: "rgba(0,0,155,0.3)",
+      borderColor: "rgba(0,255,255,0.4)",
       data: generateData("Math.sin(x/40.5)", FROM, TO, STEP),
       label: "b = 40.5Hz",
     },
     {
       fill: false,
       pointRadius: 1,
-      borderColor: "rgba(0,0,0,0.5)",
+      borderColor: "rgba(0,255,0,0.9)",
       data: generateData("(Math.sin(x/39.5) + Math.sin(x/40.5))/2", FROM, TO, STEP),
       label: "(a+b)/2",
     },
