@@ -5,7 +5,7 @@ date = 2024-12-24T15:00:00Z
 draft = false
 
 [taxonomies]
-tags = ["Javascript","Synthesizer", "Sound"]
+tags = ["javascript","synthesizer","Sound"]
 [extra]
 keywords = "Javascript,Synthesizer,Sound"
 toc = true
