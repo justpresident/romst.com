@@ -53,6 +53,7 @@ smart_punctuation = false          # `...` to `…`, `"quote"` to `“curly”` 
 ###############################################################################
 
 menu = [
+    {url = "projects", name = "Projects", slash = true, blank = false, size="s110"},
     {url = "blog", name = "Blog", slash = true, blank = false, size="s110"},
     {url = "tags", name = "Tags", slash = true, blank = false, size="s110"},
 ]
@@ -169,7 +170,7 @@ feed = false # this adds the RSS feed icon in the footer.
 ###############################################################################
 
 uglyurls = false # if set to true then links are generated with the full path. eg https://abridge.netlify.app/index.html
-integrity = true # increases site security, should normally be true. (setting to false is useful during js development)
+integrity = false # increases site security, should normally be true. (setting to false is useful during js development)
 js_bundle = true # multiple javascript files combined into a single file (setting to false is useful during js development)
 
 js_copycode = true # The copy button on code blocks that allows you to copy them to the clipboard.

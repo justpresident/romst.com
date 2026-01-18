@@ -72,52 +72,30 @@ Shows recent blog posts with a Projects sidebar
     {%- endif %}
     </div>
 
-    {# Projects Sidebar #}
+    {# Projects Sidebar - dynamically grouped #}
     {%- set projects_section = get_section(path="projects/_index.md") %}
     {%- if projects_section.pages %}
     <div class="sblock">
       <div class="blockdiv sticky">
         <span class="b s150">Projects</span>
-        {# Group projects by extra.group #}
-        {%- set games = [] %}
-        {%- set audio = [] %}
-        {%- set other = [] %}
+        {# Collect unique groups #}
+        {%- set groups_seen = [] %}
         {%- for project in projects_section.pages %}
-          {%- if project.extra.group == "Games" %}
-            {%- set_global games = games | concat(with=project) %}
-          {%- elif project.extra.group == "Audio" %}
-            {%- set_global audio = audio | concat(with=project) %}
-          {%- else %}
-            {%- set_global other = other | concat(with=project) %}
+          {%- if project.extra.group and project.extra.group not in groups_seen %}
+            {%- set_global groups_seen = groups_seen | concat(with=project.extra.group) %}
           {%- endif %}
         {%- endfor %}
-
-        {%- if games | length > 0 %}
-        <div class="tpad"><strong class="s90">Games</strong></div>
-        {%- for project in games %}
+        {# Display each group #}
+        {%- for group_name in groups_seen %}
+        <div class="tpad"><strong class="s90">{{ group_name }}</strong></div>
+        {%- for project in projects_section.pages %}
+        {%- if project.extra.group == group_name %}
         <div class="tpad">
           <a href="{{ project.extra.project_url | safe }}" title="{{ project.description }}">{{ project.title }}</a>
         </div>
-        {%- endfor %}
         {%- endif %}
-
-        {%- if audio | length > 0 %}
-        <div class="tpad"><strong class="s90">Audio</strong></div>
-        {%- for project in audio %}
-        <div class="tpad">
-          <a href="{{ project.extra.project_url | safe }}" title="{{ project.description }}">{{ project.title }}</a>
-        </div>
         {%- endfor %}
-        {%- endif %}
-
-        {%- if other | length > 0 %}
-        <div class="tpad"><strong class="s90">Other</strong></div>
-        {%- for project in other %}
-        <div class="tpad">
-          <a href="{{ project.extra.project_url | safe }}" title="{{ project.description }}">{{ project.title }}</a>
-        </div>
         {%- endfor %}
-        {%- endif %}
       </div>
     </div>
     {%- endif %}
