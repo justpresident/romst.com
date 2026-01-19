@@ -12,19 +12,21 @@
         }
         body {
             background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
+            overflow: hidden;
             font-family: 'Courier New', monospace;
             color: #0f0;
         }
         #gameContainer {
-            position: relative;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
         canvas {
             display: block;
-            border: 2px solid #333;
+            width: 100%;
+            height: 100%;
         }
         #hud {
             position: absolute;
@@ -74,9 +76,28 @@
         const canvas = document.getElementById('game');
         const ctx = canvas.getContext('2d');
 
-        // Set canvas size
-        canvas.width = 800;
-        canvas.height = 600;
+        // Set canvas size to full screen
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        resizeCanvas();
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            generateTerrain();
+            // Regenerate stars for new canvas size
+            stars = [];
+            for (let i = 0; i < 150; i++) {
+                stars.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height * 0.7,
+                    size: Math.random() * 2 + 0.5,
+                    brightness: Math.random()
+                });
+            }
+        });
 
         // Load spaceship image and make black background transparent
         const shipImg = new Image();
@@ -127,11 +148,14 @@
 
         // Initialize game
         function init() {
-            // Reset ship
+            // Reset ship - randomize position and direction
+            const startFromLeft = Math.random() > 0.5;
             ship = {
-                x: 100 + Math.random() * 200,
+                x: startFromLeft
+                    ? 100 + Math.random() * (canvas.width * 0.3)
+                    : canvas.width - 100 - Math.random() * (canvas.width * 0.3),
                 y: 80,
-                vx: 0.5 + Math.random() * 0.5,
+                vx: (1.0 + Math.random() * 1.0) * (startFromLeft ? 1 : -1),
                 vy: 0,
                 angle: 0,
                 angularVel: 0,  // Angular velocity for physics
@@ -152,9 +176,10 @@
             // Generate terrain
             generateTerrain();
 
-            // Generate stars
+            // Generate stars (more stars for larger screen)
             stars = [];
-            for (let i = 0; i < 100; i++) {
+            const starCount = Math.floor((canvas.width * canvas.height) / 5000);
+            for (let i = 0; i < starCount; i++) {
                 stars.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height * 0.7,
@@ -169,19 +194,36 @@
 
         function generateTerrain() {
             terrain = [];
-            const segments = 40;
+            // More segments for wider screens
+            const segments = Math.max(60, Math.floor(canvas.width / 15));
             const segmentWidth = canvas.width / segments;
 
             // Pick a random spot for landing pad (not too close to edges)
-            const padSegment = Math.floor(5 + Math.random() * (segments - 10));
+            const padSegment = Math.floor(8 + Math.random() * (segments - 16));
             const padWidth = 4; // segments wide
 
-            let y = canvas.height - 100 - Math.random() * 100;
+            // Generate some random "mountain" peaks
+            const numMountains = 3 + Math.floor(Math.random() * 4);
+            const mountains = [];
+            for (let m = 0; m < numMountains; m++) {
+                mountains.push({
+                    center: Math.floor(Math.random() * segments),
+                    height: 80 + Math.random() * 150,
+                    width: 5 + Math.random() * 10
+                });
+            }
+
+            // Start at a random height
+            let baseY = canvas.height - 150 - Math.random() * 100;
+            let y = baseY;
 
             for (let i = 0; i <= segments; i++) {
                 // Create flat landing pad area
                 if (i >= padSegment && i <= padSegment + padWidth) {
                     if (i === padSegment) {
+                        // Make sure landing pad is in a reasonable spot
+                        y = Math.min(y, canvas.height - 80);
+                        y = Math.max(y, canvas.height - 300);
                         landingPad = {
                             x: i * segmentWidth,
                             y: y,
@@ -190,9 +232,26 @@
                     }
                     terrain.push({ x: i * segmentWidth, y: y });
                 } else {
-                    // Random terrain
-                    y += (Math.random() - 0.5) * 40;
-                    y = Math.max(canvas.height - 250, Math.min(canvas.height - 50, y));
+                    // Add mountain influence
+                    let mountainInfluence = 0;
+                    for (const mt of mountains) {
+                        const dist = Math.abs(i - mt.center);
+                        if (dist < mt.width) {
+                            // Smooth mountain shape using cosine
+                            mountainInfluence += mt.height * (1 + Math.cos(Math.PI * dist / mt.width)) / 2;
+                        }
+                    }
+
+                    // Random terrain with varying roughness
+                    const roughness = 25 + Math.random() * 35;
+                    y += (Math.random() - 0.5) * roughness;
+
+                    // Apply mountain influence (mountains go UP, so subtract from y)
+                    const targetY = baseY - mountainInfluence;
+                    y = y * 0.7 + targetY * 0.3; // Blend toward mountain shape
+
+                    // Keep within bounds
+                    y = Math.max(canvas.height - 400, Math.min(canvas.height - 50, y));
                     terrain.push({ x: i * segmentWidth, y: y });
                 }
             }
@@ -234,9 +293,13 @@
             ship.x += ship.vx;
             ship.y += ship.vy;
 
-            // Screen wrapping (horizontal)
-            if (ship.x < -ship.width) ship.x = canvas.width;
-            if (ship.x > canvas.width) ship.x = -ship.width;
+            // Check if ship left the screen - loss of communication
+            if (ship.x < -ship.width || ship.x > canvas.width + ship.width || ship.y < -ship.height) {
+                gameState = 'lost';
+                ship.visible = false;
+                showMessage('MISSION FAILED!\nSpaceship lost contact\nwith Mission Control!', '#f80');
+                return;
+            }
 
             // Check collision with terrain
             checkCollision();
@@ -275,11 +338,6 @@
                 }
             }
 
-            // Check ceiling
-            if (ship.y < 0) {
-                ship.y = 0;
-                ship.vy = Math.abs(ship.vy) * 0.5;
-            }
         }
 
         // Physics constants - heavy spacecraft
@@ -459,6 +517,13 @@
                 ship.x += ship.vx;
                 ship.y += ship.vy;
                 ship.angle += ship.angularVel;
+
+                // Check if ship left the screen
+                if (ship.x < -ship.width || ship.x > canvas.width + ship.width || ship.y < -ship.height) {
+                    gameState = 'lost';
+                    ship.visible = false;
+                    showMessage('MISSION FAILED!\nSpaceship lost contact\nwith Mission Control!', '#f80');
+                }
                 return;
             }
 
@@ -620,9 +685,6 @@
             if (ship.contactTime > 800) {
                 triggerCrash(null);
             }
-
-            // Keep on screen
-            ship.x = Math.max(20, Math.min(canvas.width - 20, ship.x));
         }
 
         function showMessage(text, color) {
