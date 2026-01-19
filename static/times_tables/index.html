@@ -11,49 +11,59 @@
       padding: 0;
     }
 
+    :root {
+      --cell-size: 50px;
+      --cell-gap: 4px;
+      --header-size: 28px;
+      --font-scale: 1;
+    }
+
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
+      min-height: 100dvh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
+      padding: 10px;
+      overflow: hidden;
     }
 
     h1 {
       color: white;
-      margin-bottom: 10px;
+      margin-bottom: 6px;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      font-size: calc(1.5rem * var(--font-scale));
     }
 
     .header {
       display: flex;
-      gap: 30px;
-      margin-bottom: 20px;
+      gap: 15px;
+      margin-bottom: 10px;
       color: white;
-      font-size: 1.2rem;
+      font-size: calc(1rem * var(--font-scale));
     }
 
     .header span {
       background: rgba(255,255,255,0.2);
-      padding: 8px 16px;
+      padding: 6px 12px;
       border-radius: 8px;
     }
 
     .level-select {
       display: flex;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 6px;
+      margin-bottom: 10px;
       flex-wrap: wrap;
       justify-content: center;
     }
 
     .level-btn {
-      padding: 10px 20px;
-      font-size: 1rem;
+      padding: 6px 12px;
+      font-size: calc(0.85rem * var(--font-scale));
       border: none;
-      border-radius: 8px;
+      border-radius: 6px;
       cursor: pointer;
       background: rgba(255,255,255,0.3);
       color: white;
@@ -87,34 +97,34 @@
 
     .col-headers {
       display: flex;
-      gap: 4px;
-      margin-left: 32px;
+      gap: var(--cell-gap);
+      margin-left: calc(var(--header-size) + 4px);
     }
 
     .col-header {
-      width: 50px;
-      height: 28px;
+      width: var(--cell-size);
+      height: var(--header-size);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: calc(0.9rem * var(--font-scale));
       font-weight: bold;
       color: white;
       background: linear-gradient(180deg, #667eea 0%, #5a6fd6 100%);
-      border-radius: 6px 6px 0 0;
+      border-radius: 4px 4px 0 0;
     }
 
     .row-header {
-      width: 28px;
-      height: 50px;
+      width: var(--header-size);
+      height: var(--cell-size);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: calc(0.9rem * var(--font-scale));
       font-weight: bold;
       color: white;
       background: linear-gradient(90deg, #764ba2 0%, #6a4190 100%);
-      border-radius: 6px 0 0 6px;
+      border-radius: 4px 0 0 4px;
     }
 
     .main-grid-area {
@@ -124,40 +134,40 @@
     .row-headers {
       display: flex;
       flex-direction: column;
-      gap: 4px;
-      padding-top: 4px;
+      gap: var(--cell-gap);
+      padding-top: var(--cell-gap);
     }
 
     .grid-container {
       position: relative;
       background: rgba(255,255,255,0.95);
-      border-radius: 4px 8px 8px 8px;
+      border-radius: 4px 6px 6px 6px;
       padding: 0px;
       top: 2px;
       left: 2px;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
 
     .grid {
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: var(--cell-gap);
     }
 
     .grid-cells-row {
       display: flex;
-      gap: 4px;
+      gap: var(--cell-gap);
     }
 
     .cell {
-      width: 50px;
-      height: 50px;
+      width: var(--cell-size);
+      height: var(--cell-size);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.9rem;
+      font-size: calc(0.7rem * var(--font-scale));
       font-weight: bold;
-      border-radius: 6px;
+      border-radius: 4px;
       background: #e0e0e0;
       color: #333;
       transition: background 0.3s;
@@ -219,12 +229,13 @@
     .popup {
       position: fixed;
       background: white;
-      border-radius: 20px;
-      padding: 40px;
+      border-radius: 16px;
+      padding: 20px 25px;
       text-align: center;
       box-shadow: 0 20px 60px rgba(0,0,0,0.4);
       pointer-events: none;
       transform: translate(-50%, -50%) scale(0);
+      max-width: 90vw;
     }
 
     .popup.at-cell {
@@ -249,15 +260,15 @@
     }
 
     .popup .question {
-      font-size: 3rem;
+      font-size: calc(2rem * var(--font-scale));
       color: #333;
-      margin-bottom: 20px;
+      margin-bottom: 15px;
     }
 
     .popup input {
-      font-size: 2rem;
-      width: 150px;
-      padding: 10px;
+      font-size: calc(1.5rem * var(--font-scale));
+      width: 120px;
+      padding: 8px;
       text-align: center;
       border: 3px solid #667eea;
       border-radius: 10px;
@@ -269,9 +280,9 @@
     }
 
     .popup .feedback {
-      margin-top: 15px;
-      font-size: 1.5rem;
-      min-height: 40px;
+      margin-top: 10px;
+      font-size: calc(1.2rem * var(--font-scale));
+      min-height: 30px;
     }
 
     .popup .feedback.correct {
@@ -302,14 +313,15 @@
 
     .result-content {
       background: white;
-      border-radius: 20px;
-      padding: 50px;
+      border-radius: 16px;
+      padding: 25px 30px;
       text-align: center;
+      max-width: 90vw;
     }
 
     .result-content h2 {
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+      font-size: calc(1.8rem * var(--font-scale));
+      margin-bottom: 15px;
     }
 
     .result-content.success h2 {
@@ -321,15 +333,15 @@
     }
 
     .result-content p {
-      font-size: 1.3rem;
+      font-size: calc(1rem * var(--font-scale));
       color: #666;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .result-content button {
-      margin-top: 20px;
-      padding: 15px 30px;
-      font-size: 1.2rem;
+      margin-top: 15px;
+      padding: 12px 24px;
+      font-size: calc(1rem * var(--font-scale));
       border: none;
       border-radius: 10px;
       cursor: pointer;
@@ -343,14 +355,14 @@
     }
 
     .start-btn {
-      padding: 15px 40px;
-      font-size: 1.3rem;
+      padding: 10px 25px;
+      font-size: calc(1.1rem * var(--font-scale));
       border: none;
       border-radius: 10px;
       cursor: pointer;
       background: #4CAF50;
       color: white;
-      margin-top: 20px;
+      margin-top: 10px;
       transition: transform 0.2s;
     }
 
@@ -385,32 +397,34 @@
     /* Level rules section */
     .level-rules {
       background: rgba(255,255,255,0.15);
-      border-radius: 10px;
-      padding: 15px 25px;
-      margin-top: 15px;
+      border-radius: 8px;
+      padding: 10px 15px;
+      margin-top: 10px;
       color: white;
       text-align: center;
-      max-width: 400px;
+      max-width: 90vw;
     }
 
     .level-rules h3 {
-      margin-bottom: 10px;
-      font-size: 1.1rem;
+      margin-bottom: 6px;
+      font-size: calc(0.95rem * var(--font-scale));
     }
 
     .level-rules p {
-      margin: 5px 0;
-      font-size: 0.95rem;
+      margin: 3px 0;
+      font-size: calc(0.85rem * var(--font-scale));
       opacity: 0.9;
     }
 
     /* Game stats bar (shown during gameplay) */
     .game-stats {
       display: none;
-      gap: 30px;
-      margin-bottom: 20px;
+      gap: 10px;
+      margin-bottom: 10px;
       color: white;
-      font-size: 1.2rem;
+      font-size: calc(0.9rem * var(--font-scale));
+      flex-wrap: wrap;
+      justify-content: center;
     }
 
     .game-stats.visible {
@@ -419,8 +433,8 @@
 
     .game-stats span {
       background: rgba(255,255,255,0.2);
-      padding: 8px 16px;
-      border-radius: 8px;
+      padding: 5px 10px;
+      border-radius: 6px;
     }
 
     .game-stats .lives-container {
@@ -434,7 +448,7 @@
     }
 
     .game-stats .life-icon {
-      font-size: 1.6rem;
+      font-size: calc(1.3rem * var(--font-scale));
       filter: drop-shadow(0 0 2px rgba(255, 0, 0, 0.5));
       transition: all 0.2s;
     }
@@ -512,9 +526,9 @@
 
     /* Popup timer */
     .popup-timer {
-      font-size: 1.8rem;
+      font-size: calc(1.5rem * var(--font-scale));
       font-weight: bold;
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       color: #667eea;
     }
 
@@ -530,6 +544,61 @@
     @keyframes pulse {
       0%, 100% { transform: scale(1); }
       50% { transform: scale(1.1); }
+    }
+
+    /* Responsive breakpoints */
+    @media (max-width: 600px) {
+      :root {
+        --font-scale: 0.9;
+      }
+      body {
+        padding: 8px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      :root {
+        --font-scale: 0.8;
+      }
+      body {
+        padding: 5px;
+      }
+      .level-btn {
+        padding: 5px 8px;
+      }
+      .header span, .game-stats span {
+        padding: 4px 8px;
+      }
+    }
+
+    @media (max-height: 700px) {
+      h1 {
+        margin-bottom: 4px;
+      }
+      .header, .game-stats {
+        margin-bottom: 6px;
+      }
+      .level-select {
+        margin-bottom: 6px;
+      }
+      .level-rules {
+        margin-top: 6px;
+        padding: 6px 12px;
+      }
+      .start-btn {
+        margin-top: 6px;
+        padding: 8px 20px;
+      }
+    }
+
+    @media (max-height: 500px) {
+      h1 {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+      }
+      .level-rules {
+        display: none;
+      }
     }
   </style>
 </head>
@@ -757,11 +826,40 @@
       });
     }
 
+    // Calculate and set optimal cell size for current viewport and grid
+    function updateCellSize(gridSize) {
+      const root = document.documentElement;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+
+      // Reserve space for UI elements (header, buttons, etc.)
+      const headerSpace = 160; // Approximate space for header, level select, rules, button
+      const availableWidth = vw - 20; // Padding
+      const availableHeight = vh - headerSpace;
+
+      // Calculate max cell size that fits
+      const gap = 3;
+      const headerSize = Math.min(24, Math.max(16, vw / 20));
+
+      // Grid needs: gridSize cells + (gridSize-1) gaps + header
+      const maxCellWidth = (availableWidth - headerSize - 10 - (gridSize - 1) * gap) / gridSize;
+      const maxCellHeight = (availableHeight - headerSize - 10 - (gridSize - 1) * gap) / gridSize;
+
+      // Use the smaller of the two, with min/max limits
+      let cellSize = Math.min(maxCellWidth, maxCellHeight);
+      cellSize = Math.max(25, Math.min(50, cellSize)); // Min 25px, max 50px
+
+      root.style.setProperty('--cell-size', cellSize + 'px');
+      root.style.setProperty('--cell-gap', gap + 'px');
+      root.style.setProperty('--header-size', headerSize + 'px');
+    }
+
     // Select a level
     function selectLevel(level) {
       state.currentLevel = level;
       state.isPlaying = false;
       clearInterval(state.cellTimerInterval);
+      updateCellSize(level.gridSize);
       initGrid();
       renderLevelSelect();
       currentLevelEl.textContent = level.id;
@@ -1184,6 +1282,14 @@
     popupOverlay.addEventListener('click', (e) => {
       if (e.target === popupOverlay && !state.isPlaying) {
         hidePopup();
+      }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', () => {
+      if (state.currentLevel) {
+        updateCellSize(state.currentLevel.gridSize);
+        initGrid();
       }
     });
 

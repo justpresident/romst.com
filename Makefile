@@ -8,7 +8,7 @@ serve:
 # Production build - ensures integrity is enabled
 build:
 	@sed -i 's/^integrity = false/integrity = true/' config.toml 2>/dev/null || true
-	docker run -it --rm -p 1111:1111 -w /app -v $(PWD):/app zola build
+	docker run -it --rm -w /app -v $(PWD):/app zola build
 
 deploy: build
 	rsync -av public romst.com:
