@@ -55,6 +55,176 @@
             text-align: center;
             opacity: 0.7;
         }
+
+        /* Mobile controls - two-handed layout */
+        #mobileControls {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 15px;
+            pointer-events: none;
+            justify-content: space-between;
+        }
+
+        #leftControls {
+            display: flex;
+            gap: 10px;
+            pointer-events: auto;
+        }
+
+        #rightControls {
+            display: flex;
+            pointer-events: auto;
+        }
+
+        #thrustButton {
+            width: 120px;
+            height: 100px;
+            background: radial-gradient(circle at center, rgba(255, 100, 0, 0.5) 0%, rgba(255, 50, 0, 0.25) 70%, transparent 100%);
+            border: 3px solid rgba(255, 150, 0, 0.7);
+            border-radius: 15px;
+            color: #f80;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 10px #f80;
+            cursor: pointer;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.1s;
+            line-height: 1.3;
+        }
+
+        #thrustButton:active, #thrustButton.active {
+            background: radial-gradient(circle at center, rgba(255, 150, 0, 0.8) 0%, rgba(255, 100, 0, 0.5) 70%, transparent 100%);
+            border-color: rgba(255, 200, 0, 1);
+            transform: scale(0.97);
+        }
+
+        .rotateBtn {
+            width: 80px;
+            height: 100px;
+            background: radial-gradient(circle at center, rgba(0, 150, 255, 0.4) 0%, rgba(0, 100, 200, 0.2) 70%, transparent 100%);
+            border: 3px solid rgba(0, 150, 255, 0.6);
+            border-radius: 15px;
+            color: #0af;
+            font-size: 32px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            text-shadow: 0 0 10px #0af;
+            cursor: pointer;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.1s;
+        }
+
+        .rotateBtn:active, .rotateBtn.active {
+            background: radial-gradient(circle at center, rgba(0, 200, 255, 0.6) 0%, rgba(0, 150, 255, 0.4) 70%, transparent 100%);
+            border-color: rgba(0, 200, 255, 0.9);
+            transform: scale(0.97);
+        }
+
+        /* Landscape mode adjustments */
+        @media (orientation: landscape) and (max-height: 500px) {
+            #mobileControls {
+                padding: 10px 20px;
+            }
+            #thrustButton, .rotateBtn {
+                height: 70px;
+            }
+            #thrustButton {
+                width: 100px;
+                font-size: 12px;
+            }
+            .rotateBtn {
+                width: 70px;
+                font-size: 26px;
+            }
+        }
+
+        /* Hide rotation buttons when gyro is working */
+        .gyro-active #leftControls {
+            display: none;
+        }
+
+        #gyroPrompt {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            color: #0f0;
+            font-size: 18px;
+            text-align: center;
+            padding: 30px;
+        }
+
+        #gyroPrompt button {
+            margin-top: 30px;
+            padding: 15px 40px;
+            font-size: 20px;
+            background: #0a0;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            cursor: pointer;
+        }
+
+        #tiltIndicator {
+            display: none;
+            position: fixed;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(0, 255, 0, 0.4);
+            border-radius: 20px;
+        }
+
+        #tiltMarker {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 30px;
+            height: 30px;
+            background: #0f0;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #0f0;
+            transition: top 0.1s;
+        }
+
+        #tiltCenter {
+            position: absolute;
+            left: 5px;
+            right: 5px;
+            top: 50%;
+            height: 2px;
+            background: rgba(0, 255, 0, 0.3);
+        }
+
+        .mobile #instructions {
+            display: none;
+        }
+
+        .mobile #hud {
+            font-size: 12px;
+            top: 5px;
+            left: 5px;
+        }
     </style>
 </head>
 <body>
@@ -69,6 +239,31 @@
         <div id="message"></div>
         <div id="instructions">
             ARROW KEYS or WASD to control | SPACE for thrust | R to restart
+        </div>
+
+        <!-- Mobile controls - two-handed layout -->
+        <div id="mobileControls">
+            <!-- Left side: rotation controls -->
+            <div id="leftControls">
+                <button id="rotateLeftBtn" class="rotateBtn">◀</button>
+                <button id="rotateRightBtn" class="rotateBtn">▶</button>
+            </div>
+            <!-- Right side: thrust -->
+            <div id="rightControls">
+                <button id="thrustButton">🔥<br>THRUST</button>
+            </div>
+        </div>
+
+        <div id="tiltIndicator">
+            <div id="tiltCenter"></div>
+            <div id="tiltMarker"></div>
+        </div>
+
+        <!-- Gyroscope permission prompt (required on iOS) -->
+        <div id="gyroPrompt">
+            <p>This game uses your device's tilt sensor to control the spaceship.</p>
+            <p style="margin-top: 15px; opacity: 0.8;">Tilt left/right to rotate<br>Press the button to thrust</p>
+            <button id="enableGyro">Enable Controls</button>
         </div>
     </div>
 
@@ -198,32 +393,45 @@
             const segments = Math.max(60, Math.floor(canvas.width / 15));
             const segmentWidth = canvas.width / segments;
 
-            // Pick a random spot for landing pad (not too close to edges)
-            const padSegment = Math.floor(8 + Math.random() * (segments - 16));
-            const padWidth = 4; // segments wide
+            // Detect mobile landscape mode
+            const isMobileLandscape = isMobile && canvas.width > canvas.height;
 
-            // Generate some random "mountain" peaks
-            const numMountains = 3 + Math.floor(Math.random() * 4);
+            // Landing pad must be at least 1.2x ship width
+            const minPadWidth = ship.width * 1.2;
+            const padWidthSegments = Math.max(4, Math.ceil(minPadWidth / segmentWidth));
+
+            // Pick a random spot for landing pad (not too close to edges)
+            const padSegment = Math.floor(8 + Math.random() * (segments - 16 - padWidthSegments));
+            const padWidth = padWidthSegments;
+
+            // Generate some random "mountain" peaks - smaller in mobile landscape
+            const numMountains = isMobileLandscape ? (2 + Math.floor(Math.random() * 3)) : (3 + Math.floor(Math.random() * 4));
             const mountains = [];
             for (let m = 0; m < numMountains; m++) {
                 mountains.push({
                     center: Math.floor(Math.random() * segments),
-                    height: 80 + Math.random() * 150,
+                    height: isMobileLandscape ? (30 + Math.random() * 50) : (80 + Math.random() * 150),
                     width: 5 + Math.random() * 10
                 });
             }
 
-            // Start at a random height
-            let baseY = canvas.height - 150 - Math.random() * 100;
+            // Start at a random height - lower terrain in mobile landscape
+            let baseY = isMobileLandscape
+                ? canvas.height - 40 - Math.random() * 30
+                : canvas.height - 150 - Math.random() * 100;
             let y = baseY;
+
+            // Terrain bounds - much lower in mobile landscape
+            const minTerrainY = isMobileLandscape ? canvas.height - 120 : canvas.height - 400;
+            const maxTerrainY = canvas.height - 30;
 
             for (let i = 0; i <= segments; i++) {
                 // Create flat landing pad area
                 if (i >= padSegment && i <= padSegment + padWidth) {
                     if (i === padSegment) {
                         // Make sure landing pad is in a reasonable spot
-                        y = Math.min(y, canvas.height - 80);
-                        y = Math.max(y, canvas.height - 300);
+                        y = Math.min(y, maxTerrainY - 20);
+                        y = Math.max(y, minTerrainY + 20);
                         landingPad = {
                             x: i * segmentWidth,
                             y: y,
@@ -242,8 +450,8 @@
                         }
                     }
 
-                    // Random terrain with varying roughness
-                    const roughness = 25 + Math.random() * 35;
+                    // Random terrain with varying roughness - less rough in mobile landscape
+                    const roughness = isMobileLandscape ? (10 + Math.random() * 20) : (25 + Math.random() * 35);
                     y += (Math.random() - 0.5) * roughness;
 
                     // Apply mountain influence (mountains go UP, so subtract from y)
@@ -251,7 +459,7 @@
                     y = y * 0.7 + targetY * 0.3; // Blend toward mountain shape
 
                     // Keep within bounds
-                    y = Math.max(canvas.height - 400, Math.min(canvas.height - 50, y));
+                    y = Math.max(minTerrainY, Math.min(maxTerrainY, y));
                     terrain.push({ x: i * segmentWidth, y: y });
                 }
             }
@@ -689,10 +897,14 @@
 
         function showMessage(text, color) {
             const msg = document.getElementById('message');
-            msg.innerHTML = text + '<br><br><span style="font-size: 16px">Press R to restart</span>';
+            const restartText = isMobile ? 'Tap to restart' : 'Press R to restart';
+            msg.innerHTML = text + '<br><br><span style="font-size: 16px">' + restartText + '</span>';
             msg.style.color = color;
             msg.style.display = 'block';
         }
+
+        // Mobile detection flag (will be set later, but needed here)
+        let isMobile = false;
 
         function draw() {
             // Clear canvas
@@ -823,9 +1035,19 @@
             drawExplosionAndFire();
         }
 
-        function gameLoop() {
-            update();
-            draw();
+        // Simple frame-limited game loop
+        let lastTime = 0;
+
+        function gameLoop(currentTime) {
+            const elapsed = currentTime - lastTime;
+
+            // Run at ~60fps - skip if too soon
+            if (elapsed >= 16) {
+                lastTime = currentTime;
+                update();
+                draw();
+            }
+
             requestAnimationFrame(gameLoop);
         }
 
@@ -847,9 +1069,225 @@
             keys[e.code] = false;
         });
 
+        // Mobile detection and controls
+        isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+                   || ('ontouchstart' in window);
+
+        let gyroEnabled = false;
+        let gyroWorking = false; // True only after we receive valid gyro data
+        let gyroGamma = 0; // Left/right tilt (-90 to 90)
+        let smoothedGamma = 0; // Smoothed value for less jittery control
+        let touchThrusting = false;
+        let touchRotatingLeft = false;
+        let touchRotatingRight = false;
+
+        const mobileControls = document.getElementById('mobileControls');
+        const thrustButton = document.getElementById('thrustButton');
+        const rotateLeftBtn = document.getElementById('rotateLeftBtn');
+        const rotateRightBtn = document.getElementById('rotateRightBtn');
+        const gyroPrompt = document.getElementById('gyroPrompt');
+        const enableGyroBtn = document.getElementById('enableGyro');
+        const tiltIndicator = document.getElementById('tiltIndicator');
+        const tiltMarker = document.getElementById('tiltMarker');
+
+        if (isMobile) {
+            document.body.classList.add('mobile');
+            mobileControls.style.display = 'flex';
+
+            // Check if we need to request permission (iOS 13+)
+            if (typeof DeviceOrientationEvent !== 'undefined' &&
+                typeof DeviceOrientationEvent.requestPermission === 'function') {
+                // iOS - need to request permission
+                gyroPrompt.style.display = 'flex';
+            } else if ('DeviceOrientationEvent' in window) {
+                // Android or older iOS - try to enable directly
+                enableGyroscope();
+            }
+        }
+
+        // Enable gyroscope button click
+        enableGyroBtn.addEventListener('click', async () => {
+            try {
+                if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    const permission = await DeviceOrientationEvent.requestPermission();
+                    if (permission === 'granted') {
+                        enableGyroscope();
+                    }
+                }
+            } catch (e) {
+                console.error('Gyroscope permission error:', e);
+            }
+            gyroPrompt.style.display = 'none';
+        });
+
+        function enableGyroscope() {
+            window.addEventListener('deviceorientation', handleOrientation, true);
+            gyroEnabled = true;
+
+            // Give it 2 seconds to see if we get valid data
+            setTimeout(() => {
+                if (!gyroWorking) {
+                    console.log('Gyroscope not providing data, using button controls');
+                    gyroEnabled = false;
+                }
+            }, 2000);
+        }
+
+        let gyroSampleCount = 0;
+        function handleOrientation(event) {
+            // Detect screen orientation
+            const isLandscape = window.innerWidth > window.innerHeight;
+
+            let tilt;
+            if (isLandscape) {
+                // In landscape mode, use beta for left/right tilt
+                // Beta ranges from -180 to 180, we want the range around 0 (flat)
+                // When phone is landscape and tilted left, beta decreases
+                // When phone is landscape and tilted right, beta increases
+                tilt = event.beta || 0;
+                // Clamp beta to reasonable range and invert if needed
+                if (Math.abs(tilt) > 90) {
+                    tilt = tilt > 0 ? 180 - tilt : -180 - tilt;
+                }
+            } else {
+                // In portrait mode, use gamma for left/right tilt
+                tilt = event.gamma || 0;
+            }
+
+            // Check if we're getting real data (not just zeros)
+            gyroSampleCount++;
+            if (gyroSampleCount > 5 && (Math.abs(event.gamma || 0) > 0.5 || Math.abs(event.beta || 0) > 0.5 || Math.abs(event.alpha || 0) > 0)) {
+                if (!gyroWorking) {
+                    gyroWorking = true;
+                    document.body.classList.add('gyro-active');
+                    tiltIndicator.style.display = 'block';
+                    console.log('Gyroscope working!');
+                }
+            }
+
+            gyroGamma = tilt || 0;
+
+            // Update tilt indicator - shows current tilt mapped to ship angle range
+            if (gyroWorking) {
+                const maxTilt = 60;
+                const clampedGamma = Math.max(-maxTilt, Math.min(maxTilt, smoothedGamma));
+                const percentage = 50 + (clampedGamma / maxTilt) * 45; // 5% to 95%
+                tiltMarker.style.top = percentage + '%';
+            }
+        }
+
+        // Thrust button touch events
+        thrustButton.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchThrusting = true;
+            thrustButton.classList.add('active');
+        }, { passive: false });
+
+        thrustButton.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchThrusting = false;
+            thrustButton.classList.remove('active');
+        }, { passive: false });
+
+        thrustButton.addEventListener('touchcancel', (e) => {
+            touchThrusting = false;
+            thrustButton.classList.remove('active');
+        });
+
+        // Rotation button touch events (fallback when gyro doesn't work)
+        rotateLeftBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchRotatingLeft = true;
+            rotateLeftBtn.classList.add('active');
+        }, { passive: false });
+
+        rotateLeftBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchRotatingLeft = false;
+            rotateLeftBtn.classList.remove('active');
+        }, { passive: false });
+
+        rotateLeftBtn.addEventListener('touchcancel', () => {
+            touchRotatingLeft = false;
+            rotateLeftBtn.classList.remove('active');
+        });
+
+        rotateRightBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            touchRotatingRight = true;
+            rotateRightBtn.classList.add('active');
+        }, { passive: false });
+
+        rotateRightBtn.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            touchRotatingRight = false;
+            rotateRightBtn.classList.remove('active');
+        }, { passive: false });
+
+        rotateRightBtn.addEventListener('touchcancel', () => {
+            touchRotatingRight = false;
+            rotateRightBtn.classList.remove('active');
+        });
+
+        // Prevent default touch behavior on canvas to avoid scrolling
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            // Tap anywhere on screen (except thrust button) to restart when game over
+            if (gameState !== 'playing' && gameState !== 'contacting') {
+                init();
+            }
+        }, { passive: false });
+
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+        }, { passive: false });
+
+        // Modify the update function to handle mobile input
+        const originalUpdate = update;
+        update = function() {
+            // Handle touch thrust
+            if (touchThrusting && gameState === 'playing') {
+                keys['Space'] = true;
+            } else if (isMobile) {
+                keys['Space'] = false;
+            }
+
+            // Handle touch rotation buttons (only on mobile when gyro not working)
+            if (isMobile && !gyroWorking && gameState === 'playing') {
+                if (touchRotatingLeft) {
+                    keys['ArrowLeft'] = true;
+                } else if (!keys['KeyA']) {  // Don't override physical keyboard
+                    keys['ArrowLeft'] = false;
+                }
+                if (touchRotatingRight) {
+                    keys['ArrowRight'] = true;
+                } else if (!keys['KeyD']) {  // Don't override physical keyboard
+                    keys['ArrowRight'] = false;
+                }
+            }
+
+            // Always smooth the gyro input so it's ready
+            if (gyroEnabled) {
+                smoothedGamma += (gyroGamma - smoothedGamma) * 0.2;
+            }
+
+            // Call original update first
+            originalUpdate();
+
+            // AFTER original update: override angle with gyroscope (only if gyro is working)
+            // This ensures gyro takes precedence over any keyboard input
+            if (gyroWorking && gameState === 'playing') {
+                // Directly map phone tilt to ship angle
+                // Clamp to reasonable range (-60 to 60 degrees)
+                const maxTilt = 60;
+                const clampedTilt = Math.max(-maxTilt, Math.min(maxTilt, smoothedGamma));
+                ship.angle = clampedTilt * (Math.PI / 180); // Convert degrees to radians
+            }
+        };
+
         // Start game immediately
         init();
-        gameLoop();
+        requestAnimationFrame(gameLoop);
     </script>
 </body>
 </html>
