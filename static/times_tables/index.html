@@ -1275,9 +1275,31 @@
     const devBtn = document.getElementById('dev-btn');
 
     // Event listeners
-    startBtn.addEventListener('click', startGame);
-    nextBtn.addEventListener('click', closeResultScreen);
+    startBtn.addEventListener('click', () => {
+      startBtn.blur();
+      startGame();
+    });
+    nextBtn.addEventListener('click', () => {
+      nextBtn.blur();
+      closeResultScreen();
+    });
     devBtn.addEventListener('click', unlockAllLevels);
+
+    // Global Enter key handler for buttons
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        // Result screen visible - trigger next/try again button
+        if (resultScreen.classList.contains('visible')) {
+          e.preventDefault();
+          nextBtn.click();
+        }
+        // Not playing and start button visible - trigger start
+        else if (!state.isPlaying && !startBtn.classList.contains('hidden')) {
+          e.preventDefault();
+          startBtn.click();
+        }
+      }
+    });
 
     answerInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
