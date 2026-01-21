@@ -729,6 +729,7 @@
       cellTimeRemaining: 0,
       totalSolveTime: 0,
       isPlaying: false,
+      answerSubmitted: false,
       unlockedLevels: [1]
     };
 
@@ -1060,9 +1061,10 @@
     }
 
     function handleTimeout() {
-      if (!state.isPlaying) return;
+      if (!state.isPlaying || state.answerSubmitted) return;
       // Prevent race condition: if answer was just submitted, cell may already be solved
       if (!state.currentCell || state.currentCell.solved) return;
+      state.answerSubmitted = true;
       loseLife('Time\'s up!');
     }
 
@@ -1116,6 +1118,8 @@
 
     // Show next question
     function showNextQuestion() {
+      state.answerSubmitted = false;
+
       // Find next unsolved cell
       const nextCell = state.queue.find(c => !c.solved);
 
@@ -1185,7 +1189,8 @@
 
     // Submit answer
     function submitAnswer() {
-      if (!state.currentCell || !state.isPlaying) return;
+      if (!state.currentCell || !state.isPlaying || state.answerSubmitted) return;
+      state.answerSubmitted = true;
 
       const answer = parseInt(answerInput.value);
       const correct = state.currentCell.row * state.currentCell.col;
