@@ -1061,6 +1061,8 @@
 
     function handleTimeout() {
       if (!state.isPlaying) return;
+      // Prevent race condition: if answer was just submitted, cell may already be solved
+      if (!state.currentCell || state.currentCell.solved) return;
       loseLife('Time\'s up!');
     }
 
