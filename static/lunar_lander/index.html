@@ -29,12 +29,629 @@
             height: 100%;
         }
         #hud {
+            display: none;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.5; }
+        }
+
+        @keyframes pulse-light {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Cockpit Frame */
+        #cockpitFrame {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 140px;
+            background: linear-gradient(to bottom,
+                transparent 0%,
+                rgba(20, 20, 35, 0.8) 10%,
+                rgba(15, 15, 25, 0.95) 30%,
+                #0a0a15 100%);
+            border-top: 3px solid #333;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            padding-bottom: 10px;
+            z-index: 50;
+        }
+
+        #cockpitFrame::before {
+            content: '';
             position: absolute;
-            top: 10px;
-            left: 10px;
-            font-size: 14px;
-            line-height: 1.6;
+            top: -20px;
+            left: 0;
+            right: 0;
+            height: 20px;
+            background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.3));
+            pointer-events: none;
+        }
+
+
+        /* Main cockpit panel */
+        #cockpit {
+            display: flex;
+            gap: 15px;
+            align-items: flex-end;
+            padding: 10px 20px;
+            background: linear-gradient(145deg, #1a1a2e 0%, #0d0d1a 100%);
+            border: 2px solid #444;
+            border-bottom: none;
+            border-radius: 15px 15px 0 0;
+            box-shadow: 0 -5px 30px rgba(0, 255, 0, 0.1), inset 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .cockpit-section {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .cockpit-section-title {
+            font-size: 8px;
+            color: #555;
+            letter-spacing: 2px;
+            text-align: center;
+            margin-bottom: 2px;
+        }
+
+        /* Gauges */
+        .gauge {
+            min-width: 90px;
+        }
+
+        .gauge-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: #888;
+            margin-bottom: 2px;
+        }
+
+        .gauge-value {
+            color: #0f0;
+            font-weight: bold;
             text-shadow: 0 0 5px #0f0;
+            font-size: 11px;
+        }
+
+        .gauge-value.warning {
+            color: #ff0;
+            text-shadow: 0 0 5px #ff0;
+        }
+
+        .gauge-value.danger {
+            color: #f00;
+            text-shadow: 0 0 5px #f00;
+            animation: blink 0.5s infinite;
+        }
+
+        .gauge-bar {
+            height: 10px;
+            background: #111;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #333;
+            display: flex;
+            gap: 1px;
+            padding: 1px;
+        }
+
+        .gauge-segment {
+            flex: 1;
+            background: #1a1a1a;
+            border-radius: 1px;
+            transition: background 0.1s;
+        }
+
+        .gauge-segment.lit {
+            background: #0f0;
+            box-shadow: 0 0 3px #0f0;
+        }
+
+        .gauge-segment.lit.warning {
+            background: #ff0;
+            box-shadow: 0 0 3px #ff0;
+        }
+
+        .gauge-segment.lit.danger {
+            background: #f00;
+            box-shadow: 0 0 3px #f00;
+        }
+
+        /* Attitude Indicator */
+        .attitude-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+        }
+
+        .attitude-indicator {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #111;
+            border: 3px solid #555;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .attitude-ring {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px solid #333;
+            box-sizing: border-box;
+        }
+
+        .attitude-ball {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border-radius: 50%;
+            overflow: hidden;
+            transition: transform 0.1s;
+        }
+
+        .attitude-sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to bottom, #0a1a2c 0%, #1a3a5c 100%);
+        }
+
+        .attitude-ground {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            background: linear-gradient(to bottom, #6a4a2a 0%, #3a2a1a 100%);
+        }
+
+        .attitude-horizon-line {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: #fff;
+            transform: translateY(-50%);
+        }
+
+        .attitude-pitch-lines {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+        }
+
+        .attitude-pitch-lines::before,
+        .attitude-pitch-lines::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 1px;
+            background: rgba(255,255,255,0.5);
+        }
+
+        .attitude-pitch-lines::before { top: -15px; }
+        .attitude-pitch-lines::after { top: 15px; }
+
+        .attitude-center-mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .attitude-center-mark::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -25px;
+            width: 18px;
+            height: 3px;
+            background: #f80;
+            box-shadow: 0 0 5px #f80;
+        }
+
+        .attitude-center-mark::after {
+            content: '';
+            position: absolute;
+            top: -1px;
+            right: -25px;
+            width: 18px;
+            height: 3px;
+            background: #f80;
+            box-shadow: 0 0 5px #f80;
+        }
+
+        .attitude-center-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #f80;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #f80;
+            z-index: 10;
+        }
+
+        .attitude-scale {
+            position: absolute;
+            top: 6px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 8px;
+            color: #fff;
+        }
+
+        .angle-readout, .velocity-readout {
+            font-size: 16px;
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .angle-readout.warning, .velocity-readout.warning {
+            color: #ff0;
+            text-shadow: 0 0 5px #ff0;
+        }
+
+        .angle-readout.danger, .velocity-readout.danger {
+            color: #f00;
+            text-shadow: 0 0 5px #f00;
+        }
+
+        /* Velocity Vector Indicator */
+        .velocity-indicator {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 50% 50%, #1a1a2a 0%, #0a0a15 100%);
+            border: 3px solid #555;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.9), 0 0 15px rgba(0,0,0,0.5);
+        }
+
+        .velocity-ring {
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            border-radius: 50%;
+            border: 1px solid #333;
+        }
+
+        .velocity-grid {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .velocity-grid::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #333, #333, transparent);
+        }
+
+        .velocity-grid::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 10%;
+            bottom: 10%;
+            width: 1px;
+            background: linear-gradient(to bottom, transparent, #333, #333, transparent);
+        }
+
+        .velocity-arrow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 4px;
+            height: 30px;
+            background: linear-gradient(to bottom, #0ff, #0aa);
+            transform-origin: center top;
+            transform: translate(-50%, 0) rotate(0deg);
+            border-radius: 2px;
+            box-shadow: 0 0 8px #0ff;
+            transition: transform 0.1s, height 0.1s;
+        }
+
+        .velocity-arrow::after {
+            content: '';
+            position: absolute;
+            bottom: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 6px solid transparent;
+            border-right: 6px solid transparent;
+            border-top: 10px solid #0f0;
+            filter: drop-shadow(0 0 3px #0ff);
+        }
+
+        .velocity-arrow.warning {
+            background: linear-gradient(to bottom, #ff0, #aa0);
+            box-shadow: 0 0 8px #ff0;
+        }
+
+        .velocity-arrow.warning::after {
+            border-top-color: #ff0;
+            filter: drop-shadow(0 0 3px #ff0);
+        }
+
+        .velocity-arrow.danger {
+            background: linear-gradient(to bottom, #f00, #f00);
+            box-shadow: 0 0 8px #f00;
+        }
+
+        .velocity-arrow.danger::after {
+            border-top-color: #f00;
+            filter: drop-shadow(0 0 3px #f00);
+        }
+
+        .velocity-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 10px;
+            height: 10px;
+            background: #0ff;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #0ff;
+            z-index: 5;
+        }
+
+        .velocity-labels {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            font-size: 7px;
+            color: #555;
+        }
+
+        .velocity-labels span {
+            position: absolute;
+        }
+
+        .velocity-labels .v-up { top: 6px; left: 50%; transform: translateX(-50%); }
+        .velocity-labels .v-down { bottom: 6px; left: 50%; transform: translateX(-50%); }
+        .velocity-labels .v-left { left: 6px; top: 50%; transform: translateY(-50%); }
+        .velocity-labels .v-right { right: 6px; top: 50%; transform: translateY(-50%); }
+
+        /* Status Lights Panel */
+        .status-lights {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            padding: 5px;
+        }
+
+        .status-light {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-light .light {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            border: 1px solid #444;
+        }
+
+        .status-light .label {
+            font-size: 9px;
+            color: #888;
+        }
+
+        .status-light .light.green {
+            background: radial-gradient(circle at 30% 30%, #4f4, #0f0);
+            box-shadow: 0 0 10px #0f0;
+        }
+
+        .status-light .light.yellow {
+            background: radial-gradient(circle at 30% 30%, #ff8, #ff0);
+            box-shadow: 0 0 10px #ff0;
+        }
+
+        .status-light .light.red {
+            background: radial-gradient(circle at 30% 30%, #f44, #f00);
+            box-shadow: 0 0 10px #f00;
+            animation: blink 0.3s infinite;
+        }
+
+        .status-light .light.off {
+            background: radial-gradient(circle at 30% 30%, #444, #222);
+            box-shadow: none;
+        }
+
+        /* Mission Control Radio */
+        #missionControl {
+            min-width: 220px;
+            max-width: 280px;
+            background: linear-gradient(145deg, #12121f 0%, #0a0a12 100%);
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 8px;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .radio-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #333;
+        }
+
+        .radio-title {
+            font-size: 9px;
+            color: #666;
+            letter-spacing: 2px;
+        }
+
+        .radio-status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 8px;
+            color: #0a0;
+        }
+
+        .radio-light {
+            width: 6px;
+            height: 6px;
+            background: #0f0;
+            border-radius: 50%;
+            box-shadow: 0 0 5px #0f0;
+            animation: pulse-light 2s infinite;
+        }
+
+        #radioMessages {
+            height: 70px;
+            overflow: hidden;
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .radio-message {
+            margin-bottom: 3px;
+            opacity: 0;
+            animation: fadeIn 0.3s forwards;
+        }
+
+        .radio-message .timestamp {
+            color: #444;
+            margin-right: 4px;
+        }
+
+        .radio-message .callsign {
+            color: #0af;
+            font-weight: bold;
+        }
+
+        .radio-message .text {
+            color: #0f0;
+        }
+
+        .radio-message.warning .text {
+            color: #ff0;
+        }
+
+        .radio-message.danger .text {
+            color: #f00;
+        }
+
+        .radio-message.success .text {
+            color: #0f0;
+            text-shadow: 0 0 5px #0f0;
+        }
+
+        /* Mobile adjustments */
+        .mobile #cockpitFrame {
+            height: auto;
+            background: transparent;
+            border: none;
+        }
+
+        .mobile #cockpitFrame::before {
+            display: none;
+        }
+
+        .mobile #cockpit {
+            gap: 6px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            border: 2px solid #444;
+        }
+
+        .mobile #missionControl {
+            display: none;
+        }
+
+        .mobile .cockpit-section-title {
+            display: none;
+        }
+
+        .mobile .attitude-indicator,
+        .mobile .velocity-indicator {
+            width: 55px;
+            height: 55px;
+        }
+
+        .mobile .velocity-arrow {
+            height: 18px;
+        }
+
+        .mobile .angle-readout,
+        .mobile .velocity-readout {
+            font-size: 12px;
+        }
+
+        .mobile .gauge {
+            min-width: 60px;
+        }
+
+        .mobile .gauge-label {
+            font-size: 8px;
+        }
+
+        .mobile .gauge-value {
+            font-size: 10px;
+        }
+
+        .mobile .status-lights {
+            gap: 3px;
+        }
+
+        .mobile .status-light .light {
+            width: 10px;
+            height: 10px;
+        }
+
+        .mobile .status-light .label {
+            font-size: 7px;
         }
         #message {
             position: absolute;
@@ -48,24 +665,26 @@
         }
         #instructions {
             position: absolute;
-            bottom: 10px;
+            top: 10px;
             left: 50%;
             transform: translateX(-50%);
             font-size: 12px;
             text-align: center;
             opacity: 0.7;
+            z-index: 10;
         }
 
         /* Mobile controls - two-handed layout */
         #mobileControls {
             display: none;
             position: fixed;
-            bottom: 0;
+            bottom: 145px;
             left: 0;
             right: 0;
             padding: 15px;
             pointer-events: none;
             justify-content: space-between;
+            z-index: 60;
         }
 
         #leftControls {
@@ -131,18 +750,38 @@
         /* Landscape mode adjustments */
         @media (orientation: landscape) and (max-height: 500px) {
             #mobileControls {
-                padding: 10px 20px;
+                bottom: 95px;
+                padding: 8px 15px;
             }
             #thrustButton, .rotateBtn {
-                height: 70px;
+                height: 55px;
             }
             #thrustButton {
-                width: 100px;
-                font-size: 12px;
+                width: 85px;
+                font-size: 10px;
             }
             .rotateBtn {
-                width: 70px;
-                font-size: 26px;
+                width: 55px;
+                font-size: 20px;
+            }
+            .mobile #cockpit {
+                gap: 4px;
+                padding: 5px 8px;
+            }
+            .mobile .attitude-indicator,
+            .mobile .velocity-indicator {
+                width: 45px;
+                height: 45px;
+            }
+            .mobile .angle-readout,
+            .mobile .velocity-readout {
+                font-size: 10px;
+            }
+            .mobile .gauge {
+                min-width: 50px;
+            }
+            .mobile .gauge-bar {
+                height: 6px;
             }
         }
 
@@ -181,40 +820,6 @@
             cursor: pointer;
         }
 
-        #tiltIndicator {
-            display: none;
-            position: fixed;
-            top: 50%;
-            right: 15px;
-            transform: translateY(-50%);
-            width: 40px;
-            height: 200px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(0, 255, 0, 0.4);
-            border-radius: 20px;
-        }
-
-        #tiltMarker {
-            position: absolute;
-            left: 50%;
-            top: 50%;
-            transform: translate(-50%, -50%);
-            width: 30px;
-            height: 30px;
-            background: #0f0;
-            border-radius: 50%;
-            box-shadow: 0 0 10px #0f0;
-            transition: top 0.1s;
-        }
-
-        #tiltCenter {
-            position: absolute;
-            left: 5px;
-            right: 5px;
-            top: 50%;
-            height: 2px;
-            background: rgba(0, 255, 0, 0.3);
-        }
 
         .mobile #instructions {
             display: none;
@@ -236,6 +841,122 @@
             <div>HORIZONTAL: <span id="hSpeed">0</span>m/s</div>
             <div>VERTICAL: <span id="vSpeed">0</span>m/s</div>
         </div>
+
+        <!-- Bottom Cockpit Frame -->
+        <div id="cockpitFrame">
+            <div id="cockpit">
+                <!-- Status Lights -->
+                <div class="cockpit-section">
+                    <div class="cockpit-section-title">STATUS</div>
+                    <div class="status-lights">
+                        <div class="status-light">
+                            <div class="light green" id="lightAlt"></div>
+                            <div class="label">ALT</div>
+                        </div>
+                        <div class="status-light">
+                            <div class="light green" id="lightVel"></div>
+                            <div class="label">VEL</div>
+                        </div>
+                        <div class="status-light">
+                            <div class="light green" id="lightFuel"></div>
+                            <div class="label">FUEL</div>
+                        </div>
+                        <div class="status-light">
+                            <div class="light off" id="lightWarn"></div>
+                            <div class="label">WARN</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gauges Left -->
+                <div class="cockpit-section">
+                    <div class="gauge">
+                        <div class="gauge-label">
+                            <span>ALT</span>
+                            <span class="gauge-value" id="altValue">0m</span>
+                        </div>
+                        <div class="gauge-bar" id="altBar"></div>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-label">
+                            <span>FUEL</span>
+                            <span class="gauge-value" id="fuelValue">100%</span>
+                        </div>
+                        <div class="gauge-bar" id="fuelBar"></div>
+                    </div>
+                </div>
+
+                <!-- Attitude Indicator -->
+                <div class="cockpit-section">
+                    <div class="cockpit-section-title">ATTITUDE</div>
+                    <div class="attitude-container">
+                        <div class="attitude-indicator">
+                            <div class="attitude-ring"></div>
+                            <div class="attitude-ball" id="attitudeBall">
+                                <div class="attitude-sky"></div>
+                                <div class="attitude-ground"></div>
+                                <div class="attitude-horizon-line"></div>
+                                <div class="attitude-pitch-lines"></div>
+                            </div>
+                            <div class="attitude-center-mark"></div>
+                            <div class="attitude-center-dot"></div>
+                            <div class="attitude-scale">▲</div>
+                        </div>
+                        <div class="angle-readout" id="angleReadout">0°</div>
+                    </div>
+                </div>
+
+                <!-- Velocity Vector Indicator -->
+                <div class="cockpit-section">
+                    <div class="cockpit-section-title">VELOCITY</div>
+                    <div class="attitude-container">
+                        <div class="velocity-indicator">
+                            <div class="velocity-ring"></div>
+                            <div class="velocity-grid"></div>
+                            <div class="velocity-labels">
+                                <span class="v-up">▲</span>
+                                <span class="v-down">▼</span>
+                                <span class="v-left">◀</span>
+                                <span class="v-right">▶</span>
+                            </div>
+                            <div class="velocity-arrow" id="velocityArrow"></div>
+                            <div class="velocity-center"></div>
+                        </div>
+                        <div class="velocity-readout" id="velocityReadout">0</div>
+                    </div>
+                </div>
+
+                <!-- Gauges Right -->
+                <div class="cockpit-section">
+                    <div class="gauge">
+                        <div class="gauge-label">
+                            <span>V/S</span>
+                            <span class="gauge-value" id="vSpeedValue">0</span>
+                        </div>
+                        <div class="gauge-bar" id="vSpeedBar"></div>
+                    </div>
+                    <div class="gauge">
+                        <div class="gauge-label">
+                            <span>H/S</span>
+                            <span class="gauge-value" id="hSpeedValue">0</span>
+                        </div>
+                        <div class="gauge-bar" id="hSpeedBar"></div>
+                    </div>
+                </div>
+
+                <!-- Mission Control Radio -->
+                <div id="missionControl">
+                    <div class="radio-header">
+                        <span class="radio-title">◆ CAPCOM ◆</span>
+                        <span class="radio-status">
+                            <span class="radio-light"></span>
+                            LINK
+                        </span>
+                    </div>
+                    <div id="radioMessages"></div>
+                </div>
+            </div>
+        </div>
         <div id="message"></div>
         <div id="instructions">
             ARROW KEYS or WASD to control | SPACE for thrust | R to restart
@@ -254,10 +975,6 @@
             </div>
         </div>
 
-        <div id="tiltIndicator">
-            <div id="tiltCenter"></div>
-            <div id="tiltMarker"></div>
-        </div>
 
         <!-- Gyroscope permission prompt (required on iOS) -->
         <div id="gyroPrompt">
@@ -341,6 +1058,307 @@
         // Input state
         const keys = {};
 
+        // Cockpit System
+        const GAUGE_SEGMENTS = 12;
+        const cockpitElements = {
+            altValue: document.getElementById('altValue'),
+            altBar: document.getElementById('altBar'),
+            vSpeedValue: document.getElementById('vSpeedValue'),
+            vSpeedBar: document.getElementById('vSpeedBar'),
+            hSpeedValue: document.getElementById('hSpeedValue'),
+            hSpeedBar: document.getElementById('hSpeedBar'),
+            fuelValue: document.getElementById('fuelValue'),
+            fuelBar: document.getElementById('fuelBar'),
+            attitudeBall: document.getElementById('attitudeBall'),
+            angleReadout: document.getElementById('angleReadout'),
+            velocityArrow: document.getElementById('velocityArrow'),
+            velocityReadout: document.getElementById('velocityReadout'),
+            lightAlt: document.getElementById('lightAlt'),
+            lightVel: document.getElementById('lightVel'),
+            lightFuel: document.getElementById('lightFuel'),
+            lightWarn: document.getElementById('lightWarn'),
+            radioMessages: document.getElementById('radioMessages')
+        };
+
+        // Initialize gauge bars
+        function initGaugeBars() {
+            [cockpitElements.altBar, cockpitElements.vSpeedBar,
+             cockpitElements.hSpeedBar, cockpitElements.fuelBar].forEach(bar => {
+                bar.innerHTML = '';
+                for (let i = 0; i < GAUGE_SEGMENTS; i++) {
+                    const seg = document.createElement('div');
+                    seg.className = 'gauge-segment';
+                    bar.appendChild(seg);
+                }
+            });
+        }
+
+        function updateGaugeBar(bar, valueEl, value, max, unit = '', thresholds = null, showSign = false) {
+            const segments = bar.children;
+            const absValue = Math.abs(value);
+            const normalizedValue = Math.min(1, Math.max(0, absValue / max));
+            const litCount = Math.round(normalizedValue * GAUGE_SEGMENTS);
+
+            let colorClass = '';
+
+            if (thresholds) {
+                const { warning, danger, type } = thresholds;
+
+                // Use 'low' type for things like fuel or altitude (lower is worse)
+                // Use 'high' (default) for things like speed or heat (higher is worse)
+                if (type === 'low') {
+                    if (value <= danger) colorClass = 'danger';
+                        else if (value <= warning) colorClass = 'warning';
+                } else {
+                    if (value >= danger) colorClass = 'danger';
+                        else if (value >= warning) colorClass = 'warning';
+                }
+            }
+
+            // Update Segments
+            for (let i = 0; i < segments.length; i++) {
+                segments[i].className = 'gauge-segment';
+                if (i < litCount) {
+                    segments[i].classList.add('lit');
+                    if (colorClass) segments[i].classList.add(colorClass);
+                }
+            }
+
+            // Update Text
+            const formattedNum = value.toFixed(1);
+            const displayValue = showSign && value > 0 ? `+${formattedNum}` : formattedNum;
+
+            valueEl.textContent = displayValue + unit;
+            valueEl.className = 'gauge-value';
+            if (colorClass) valueEl.classList.add(colorClass);
+        }
+
+        function updateStatusLight(light, status) {
+            light.className = 'light ' + status;
+        }
+
+        function updateCockpit() {
+            const SAFE_SPEED_TOTAL = CRASH_VELOCITY * 10;
+            const SAFE_SPEED_1AXIS = SAFE_SPEED_TOTAL / 2;
+            const altitude = Math.max(0, getAltitude());
+            const vSpeed = ship.vy * 10;
+            const hSpeed = ship.vx * 10;
+            const fuel = ship.fuel;
+            const totalSpeed = Math.sqrt(vSpeed * vSpeed + hSpeed * hSpeed);
+
+            // Update gauges
+            updateGaugeBar(cockpitElements.altBar, cockpitElements.altValue, altitude, 500, 'm', {danger: 50, warning: 100, type: 'low'});
+            updateGaugeBar(cockpitElements.vSpeedBar, cockpitElements.vSpeedValue, vSpeed, 40, '', {danger: SAFE_SPEED_1AXIS, warning: SAFE_SPEED_1AXIS*10, type: 'high'}, true);
+            updateGaugeBar(cockpitElements.hSpeedBar, cockpitElements.hSpeedValue, hSpeed, 40, '', {danger: SAFE_SPEED_1AXIS, warning: SAFE_SPEED_1AXIS*10, type: 'high'}, true);
+            updateGaugeBar(cockpitElements.fuelBar, cockpitElements.fuelValue, fuel, 100, '%', {danger: 20, warning: 50, type: 'low'}, 'inverted');
+
+            // Update attitude indicator - rotate the ball with ship angle
+            const angleDeg = ship.angle * (180 / Math.PI);
+            cockpitElements.attitudeBall.style.transform = `rotate(${angleDeg}deg)`;
+
+            // Update angle readout
+            const absAngle = Math.abs(angleDeg);
+            cockpitElements.angleReadout.textContent = (angleDeg >= 0 ? '+' : '') + angleDeg.toFixed(0) + '°';
+            cockpitElements.angleReadout.className = 'angle-readout';
+            if (absAngle > 30) cockpitElements.angleReadout.classList.add('danger');
+            else if (absAngle > 15) cockpitElements.angleReadout.classList.add('warning');
+
+            // Update velocity vector indicator
+            // Calculate direction: atan2 gives angle from positive X axis, we want from top (negative Y)
+            // So we use atan2(vx, vy) to get angle from vertical
+            const velAngle = Math.atan2(hSpeed, vSpeed) * (180 / Math.PI);
+            // Arrow length based on speed (min 5px, max 30px)
+            const arrowLength = Math.min(30, Math.max(5, totalSpeed * 1.5));
+
+            cockpitElements.velocityArrow.style.transform = `translate(-50%, 0) rotate(${-velAngle}deg)`;
+            cockpitElements.velocityArrow.style.height = arrowLength + 'px';
+
+            // Color based on speed
+            cockpitElements.velocityArrow.className = 'velocity-arrow';
+            if (totalSpeed > 25) cockpitElements.velocityArrow.classList.add('danger');
+            else if (totalSpeed > SAFE_SPEED_TOTAL) cockpitElements.velocityArrow.classList.add('warning');
+
+            // Update velocity readout
+            cockpitElements.velocityReadout.textContent = totalSpeed.toFixed(1);
+            cockpitElements.velocityReadout.className = 'velocity-readout';
+            if (totalSpeed > 25) cockpitElements.velocityReadout.classList.add('danger');
+            else if (totalSpeed > SAFE_SPEED_TOTAL) cockpitElements.velocityReadout.classList.add('warning');
+
+            // Update status lights
+            updateStatusLight(cockpitElements.lightAlt, altitude < 50 ? (altitude < 20 ? 'red' : 'yellow') : 'green');
+            // VEL is green only when within safe landing limits
+            updateStatusLight(cockpitElements.lightVel, totalSpeed > 25 ? 'red' : (totalSpeed > SAFE_SPEED_TOTAL ? 'yellow' : 'green'));
+            updateStatusLight(cockpitElements.lightFuel, fuel < 20 ? 'red' : (fuel < 40 ? 'yellow' : 'green'));
+
+            // Warning light - on if any condition is dangerous for landing
+            const danger = altitude < 20 || totalSpeed > SAFE_SPEED_TOTAL || fuel < 20 || absAngle > 17;
+            updateStatusLight(cockpitElements.lightWarn, danger ? 'red' : 'off');
+        }
+
+        // Mission Control Radio System
+        const radioCallsigns = ['CAPCOM', 'HOUSTON', 'FLIGHT', 'FIDO', 'GUIDO'];
+        let lastRadioTime = 0;
+        let lastRadioCondition = '';
+
+        const radioMessages = {
+            start: [
+                "Eagle, you are GO for powered descent.",
+                "Telemetry looks good. Begin approach.",
+                "All systems nominal. You're cleared for landing.",
+                "Altitude check... looking good Eagle."
+            ],
+            highAlt: [
+                "Altitude {alt}m. Continue descent.",
+                "Looking good at {alt} meters.",
+                "Descent rate nominal."
+            ],
+            medAlt: [
+                "Passing {alt} meters. Watch your speed.",
+                "You're coming in nicely.",
+                "Throttle up if needed."
+            ],
+            lowAlt: [
+                "Contact light should be soon.",
+                "30 seconds of fuel remaining.",
+                "Almost there, Eagle.",
+                "Looking good for touchdown."
+            ],
+            dangerAlt: [
+                "ALTITUDE! Pull up!",
+                "Too low! Increase thrust!",
+                "TERRAIN WARNING!"
+            ],
+            fastDescent: [
+                "Descent rate high! Slow down!",
+                "You're coming in too fast!",
+                "Vertical speed excessive!"
+            ],
+            goodDescent: [
+                "Descent rate good.",
+                "Speed looks nominal.",
+                "Nice and easy..."
+            ],
+            lowFuel: [
+                "FUEL WARNING! Bingo fuel!",
+                "Low fuel! Land immediately!",
+                "Fuel critical!"
+            ],
+            drifting: [
+                "Watch your horizontal drift.",
+                "Correct lateral movement.",
+                "Drifting off target."
+            ],
+            idle: [
+                "Eagle, Houston. Radio check.",
+                "How's it looking up there?",
+                "Steady as she goes.",
+                "All stations, this is FLIGHT.",
+                "Telemetry nominal."
+            ],
+            landed: [
+                "TOUCHDOWN! The Eagle has landed!",
+                "Houston, Tranquility Base here.",
+                "Mission success! Well done!",
+                "Copy, Eagle. Beautiful landing!"
+            ],
+            crashed: [
+                "We've lost signal...",
+                "EAGLE! EAGLE, respond!",
+                "Flight, we have a problem..."
+            ]
+        };
+
+        function getRandomMessage(category) {
+            const msgs = radioMessages[category];
+            return msgs[Math.floor(Math.random() * msgs.length)];
+        }
+
+        function addRadioMessage(text, type = '') {
+            const msg = document.createElement('div');
+            msg.className = 'radio-message' + (type ? ' ' + type : '');
+
+            const time = new Date();
+            const timestamp = time.getMinutes().toString().padStart(2, '0') + ':' +
+                            time.getSeconds().toString().padStart(2, '0');
+            const callsign = radioCallsigns[Math.floor(Math.random() * radioCallsigns.length)];
+
+            // Replace placeholders
+            text = text.replace('{alt}', Math.floor(getAltitude()));
+            text = text.replace('{fuel}', Math.floor(ship.fuel));
+
+            msg.innerHTML = `<span class="timestamp">${timestamp}</span><span class="callsign">${callsign}:</span> <span class="text">${text}</span>`;
+
+            cockpitElements.radioMessages.insertBefore(msg, cockpitElements.radioMessages.firstChild);
+
+            // Keep only last 6 messages
+            while (cockpitElements.radioMessages.children.length > 6) {
+                cockpitElements.radioMessages.removeChild(cockpitElements.radioMessages.lastChild);
+            }
+        }
+
+        function updateRadio() {
+            if (gameState !== 'playing') return;
+
+            const now = Date.now();
+            const timeSinceLastRadio = now - lastRadioTime;
+
+            const altitude = getAltitude();
+            const vSpeed = ship.vy * 10;
+            const hSpeed = Math.abs(ship.vx * 10);
+            const fuel = ship.fuel;
+
+            let condition = '';
+            let type = '';
+            let minDelay = 3000;
+
+            // Priority conditions
+            if (altitude < 30 && vSpeed > 12) {
+                condition = 'dangerAlt';
+                type = 'danger';
+                minDelay = 2000;
+            } else if (fuel < 20) {
+                condition = 'lowFuel';
+                type = 'danger';
+                minDelay = 2500;
+            } else if (vSpeed > 15) {
+                condition = 'fastDescent';
+                type = 'warning';
+                minDelay = 2500;
+            } else if (hSpeed > 8) {
+                condition = 'drifting';
+                type = 'warning';
+                minDelay = 3000;
+            } else if (altitude < 50) {
+                condition = 'lowAlt';
+                minDelay = 3500;
+            } else if (altitude < 150) {
+                condition = 'medAlt';
+                minDelay = 4000;
+            } else if (altitude < 400) {
+                condition = 'highAlt';
+                minDelay = 5000;
+            } else {
+                condition = 'idle';
+                minDelay = 6000;
+            }
+
+            // Send message if enough time passed and condition changed or it's been a while
+            if (timeSinceLastRadio > minDelay && (condition !== lastRadioCondition || timeSinceLastRadio > 8000)) {
+                addRadioMessage(getRandomMessage(condition), type);
+                lastRadioTime = now;
+                lastRadioCondition = condition;
+            }
+        }
+
+        function radioGameEnd(success) {
+            const category = success ? 'landed' : 'crashed';
+            const type = success ? 'success' : 'danger';
+            addRadioMessage(getRandomMessage(category), type);
+        }
+
+        // Initialize cockpit
+        initGaugeBars();
+
         // Initialize game
         function init() {
             // Reset ship - randomize position and direction
@@ -385,6 +1403,12 @@
 
             gameState = 'playing';
             document.getElementById('message').style.display = 'none';
+
+            // Reset radio
+            cockpitElements.radioMessages.innerHTML = '';
+            lastRadioTime = Date.now();
+            lastRadioCondition = '';
+            addRadioMessage(getRandomMessage('start'));
         }
 
         function generateTerrain() {
@@ -517,6 +1541,10 @@
             document.getElementById('altitude').textContent = Math.max(0, Math.floor(getAltitude()));
             document.getElementById('hSpeed').textContent = (ship.vx * 10).toFixed(1);
             document.getElementById('vSpeed').textContent = (ship.vy * 10).toFixed(1);
+
+            // Update cockpit and radio
+            updateCockpit();
+            updateRadio();
         }
 
         function getAltitude() {
@@ -550,8 +1578,6 @@
 
         // Physics constants - heavy spacecraft
         const CRASH_VELOCITY = 1.2;        // Velocity for immediate explosion (displayed as 12 m/s)
-        const SAFE_VERTICAL_SPEED = 0.15;   // Max vertical speed for safe landing (3 m/s displayed)
-        const SAFE_HORIZONTAL_SPEED = 0.3; // Max horizontal speed for safe landing (5 m/s displayed)
         const GROUND_FRICTION_COEF = 0.4;  // Friction coefficient (μ)
         const MOMENT_OF_INERTIA = 5000;    // Heavy ship resists rotation
         const STRUCTURAL_LIMIT = 1.5;      // Impact force that damages the ship
@@ -571,6 +1597,7 @@
                 { x: 10, y: -18, name: 'bodyRight', isBody: true },
                 { x: -16, y: 20, name: 'leftFoot', isBody: false },
                 { x: 16, y: 20, name: 'rightFoot', isBody: false },
+                { x: 0, y: 20, name: 'midFoot', isBody: false },
             ];
 
             return localPoints.map(p => ({
@@ -665,6 +1692,7 @@
             createExplosion(ship.x, ship.y + ship.height / 4);
             ship.visible = false;
             showMessage(reason ? `CRASHED!\n${reason}` : 'CRASHED!', '#f00');
+            radioGameEnd(false);
         }
 
         function startContactPhysics(groundY) {
@@ -863,6 +1891,7 @@
                 } else {
                     showMessage('LANDED!\nMissed the pad', '#ff0');
                 }
+                radioGameEnd(true);
                 return;
             }
 
@@ -879,6 +1908,7 @@
                     } else {
                         showMessage('LANDED!\nMissed the pad', '#ff0');
                     }
+                    radioGameEnd(true);
                 } else {
                     // At unstable equilibrium - give tiny nudge in tipping direction
                     if (stableAngle < Math.PI) {
@@ -1087,8 +2117,6 @@
         const rotateRightBtn = document.getElementById('rotateRightBtn');
         const gyroPrompt = document.getElementById('gyroPrompt');
         const enableGyroBtn = document.getElementById('enableGyro');
-        const tiltIndicator = document.getElementById('tiltIndicator');
-        const tiltMarker = document.getElementById('tiltMarker');
 
         if (isMobile) {
             document.body.classList.add('mobile');
@@ -1160,20 +2188,11 @@
                 if (!gyroWorking) {
                     gyroWorking = true;
                     document.body.classList.add('gyro-active');
-                    tiltIndicator.style.display = 'block';
                     console.log('Gyroscope working!');
                 }
             }
 
             gyroGamma = tilt || 0;
-
-            // Update tilt indicator - shows current tilt mapped to ship angle range
-            if (gyroWorking) {
-                const maxTilt = 60;
-                const clampedGamma = Math.max(-maxTilt, Math.min(maxTilt, smoothedGamma));
-                const percentage = 50 + (clampedGamma / maxTilt) * 45; // 5% to 95%
-                tiltMarker.style.top = percentage + '%';
-            }
         }
 
         // Thrust button touch events
