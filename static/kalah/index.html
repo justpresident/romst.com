@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super-Kalah</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Crimson+Text:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Crimson Text', Georgia, serif;
+            background:
+                radial-gradient(ellipse at top, #2d2418 0%, #1a1510 50%, #0f0d0a 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Subtle ambient glow */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(180, 140, 80, 0.08) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(120, 90, 60, 0.06) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 2.8em;
+            font-weight: 700;
+            color: #c9a961;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5), 0 0 30px rgba(180, 140, 80, 0.3);
+            margin-bottom: 5px;
+            z-index: 1;
+            letter-spacing: 0.1em;
+        }
+
+        .subtitle {
+            font-size: 1.1em;
+            color: #8b7355;
+            margin-bottom: 15px;
+            z-index: 1;
+            font-style: italic;
+        }
+
+        .game-container {
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Language selector */
+        .lang-selector {
+            position: fixed;
+            top: 20px;
+            left: 80px;
+            display: flex;
+            gap: 5px;
+            z-index: 100;
+        }
+
+        .lang-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            border: 1px solid #5a4a35;
+            cursor: pointer;
+            font-family: 'Cinzel', serif;
+            font-size: 0.75em;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #3d3225, #2a231b);
+            color: #a89070;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            transition: all 0.3s;
+            padding: 0;
+        }
+
+        .lang-btn:hover {
+            transform: scale(1.05);
+            border-color: #8b7355;
+            color: #c9a961;
+        }
+
+        .lang-btn.active {
+            border-color: #c9a961;
+            color: #c9a961;
+            box-shadow: 0 0 12px rgba(180, 140, 80, 0.3);
+        }
+
+        .settings {
+            background: linear-gradient(145deg, #2d2418, #1f1a14);
+            padding: 20px 30px;
+            border-radius: 16px;
+            margin-bottom: 15px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+            border: 1px solid #4a3c2a;
+        }
+
+        .settings-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(145deg, #252018, #1a1510);
+            padding: 8px 14px;
+            border-radius: 10px;
+            border: 1px solid #3a3025;
+        }
+
+        .settings-group:hover {
+            border-color: #5a4a35;
+        }
+
+        .settings-icon {
+            font-size: 1.2em;
+            opacity: 0.7;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .settings label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            color: #a89070;
+            font-size: 0.95em;
+        }
+
+        .settings input, .settings select {
+            padding: 8px 12px;
+            border-radius: 6px;
+            border: 1px solid #4a3c2a;
+            background: linear-gradient(145deg, #1a1510, #0f0d0a);
+            color: #d4c4a8;
+            font-size: 1em;
+            font-family: 'Crimson Text', serif;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .settings input:focus, .settings select:focus {
+            outline: none;
+            border-color: #c9a961;
+            box-shadow: 0 0 10px rgba(180, 140, 80, 0.3);
+        }
+
+        .settings select option {
+            background: #1a1510;
+            color: #d4c4a8;
+        }
+
+        /* Custom number input with spinner */
+        .number-input-wrapper {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(145deg, #1a1510, #0f0d0a);
+            border-radius: 6px;
+            border: 1px solid #4a3c2a;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+
+        .number-input-wrapper:hover,
+        .number-input-wrapper:focus-within {
+            border-color: #c9a961;
+            box-shadow: 0 0 10px rgba(180, 140, 80, 0.2);
+        }
+
+        .number-input-wrapper input[type="number"] {
+            width: 45px;
+            padding: 8px 4px;
+            border: none;
+            background: transparent;
+            text-align: center;
+            font-size: 1.1em;
+            -moz-appearance: textfield;
+        }
+
+        .number-input-wrapper input[type="number"]::-webkit-outer-spin-button,
+        .number-input-wrapper input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        .number-input-wrapper input[type="number"]:focus {
+            outline: none;
+            box-shadow: none;
+        }
+
+        .number-btn {
+            width: 28px;
+            height: 36px;
+            border: none;
+            background: linear-gradient(145deg, #3a3025, #2a231b);
+            color: #a89070;
+            font-size: 1.1em;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+        }
+
+        .number-btn:hover {
+            background: linear-gradient(145deg, #4a4035, #3a3025);
+            color: #c9a961;
+        }
+
+        .number-btn:active {
+            background: linear-gradient(145deg, #2a231b, #3a3025);
+        }
+
+        .settings select {
+            padding: 8px 30px 8px 12px;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23a89070' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            cursor: pointer;
+            min-width: 120px;
+        }
+
+        .settings input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #c9a961;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            position: relative;
+            width: 18px;
+            height: 18px;
+            appearance: none;
+            background: linear-gradient(145deg, #1a1510, #0f0d0a);
+            border: 1px solid #4a3c2a;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked {
+            background: linear-gradient(145deg, #5a4a35, #4a3c2a);
+            border-color: #c9a961;
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked::after {
+            content: '✓';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #c9a961;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .checkbox-wrapper:hover input[type="checkbox"] {
+            border-color: #6a5a45;
+        }
+
+        .settings-divider {
+            width: 1px;
+            height: 30px;
+            background: linear-gradient(to bottom, transparent, #4a3c2a, transparent);
+            margin: 0 8px;
+        }
+
+        .score-board {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 15px;
+        }
+
+        .score-card {
+            background: linear-gradient(145deg, #4a3c2a, #3d3225);
+            padding: 12px 25px;
+            border-radius: 10px;
+            color: #d4c4a8;
+            font-weight: 600;
+            font-size: 1.1em;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+            border: 1px solid #5a4a35;
+            transition: transform 0.3s;
+        }
+
+        .score-card:last-child {
+            background: linear-gradient(145deg, #2a4a3a, #1f3a2a);
+            border-color: #3a5a4a;
+        }
+
+        .score-card:hover {
+            transform: scale(1.05);
+        }
+
+        .player-banner {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1em;
+            transition: all 0.3s;
+            font-family: 'Cinzel', serif;
+            letter-spacing: 0.05em;
+        }
+
+        .player-banner.computer {
+            background: rgba(90, 60, 40, 0.3);
+            color: #a08060;
+            border: 1px solid transparent;
+        }
+
+        .player-banner.player {
+            background: rgba(60, 90, 70, 0.3);
+            color: #80a090;
+            border: 1px solid transparent;
+        }
+
+        .player-banner.active {
+            transform: scale(1.05);
+            animation: glow 1.5s ease-in-out infinite alternate;
+        }
+
+        .player-banner.computer.active {
+            background: linear-gradient(145deg, #5a4030, #4a3020);
+            color: #d4c4a8;
+            border-color: #8b6040;
+        }
+
+        .player-banner.player.active {
+            background: linear-gradient(145deg, #2a5040, #1f4030);
+            color: #b0d0c0;
+            border-color: #4a8060;
+        }
+
+        @keyframes glow {
+            from { box-shadow: 0 0 8px rgba(180, 140, 80, 0.3); }
+            to { box-shadow: 0 0 20px rgba(180, 140, 80, 0.5); }
+        }
+
+        .board-wrapper {
+            position: relative;
+        }
+
+        .board {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            background: linear-gradient(145deg, #5a4a35, #4a3c2a);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5), inset 0 2px 0 rgba(255,255,255,0.1);
+            border: 3px solid #6b5a45;
+            position: relative;
+        }
+
+        .board::before {
+            content: '';
+            position: absolute;
+            inset: 8px;
+            border: 1px solid rgba(100, 80, 60, 0.3);
+            border-radius: 15px;
+            pointer-events: none;
+        }
+
+        .kalah {
+            width: 90px;
+            height: 220px;
+            background: linear-gradient(180deg, #3d3225 0%, #252018 100%);
+            border-radius: 45px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 2.2em;
+            font-weight: 700;
+            color: #c9a961;
+            box-shadow: inset 0 8px 20px rgba(0,0,0,0.6), 0 4px 10px rgba(0,0,0,0.4);
+            border: 2px solid #4a3c2a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kalah::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            height: 30px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent);
+            border-radius: 40px 40px 0 0;
+        }
+
+        .kalah-label {
+            font-size: 0.35em;
+            color: #8b7355;
+            margin-top: 5px;
+            letter-spacing: 0.1em;
+        }
+
+        .kalah.receiving {
+            animation: kalah-pulse 0.3s ease-out;
+        }
+
+        @keyframes kalah-pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); box-shadow: inset 0 8px 20px rgba(0,0,0,0.6), 0 0 25px rgba(180, 140, 80, 0.4); }
+            100% { transform: scale(1); }
+        }
+
+        .pits-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .pits-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .pit {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(180deg, #3d3225 0%, #252018 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Cinzel', serif;
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #c9a961;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 6px 15px rgba(0,0,0,0.6), 0 4px 8px rgba(0,0,0,0.4);
+            border: 2px solid #4a3c2a;
+            position: relative;
+            overflow: visible;
+        }
+
+        .pit::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 15%;
+            right: 15%;
+            height: 15px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.08), transparent);
+            border-radius: 50%;
+        }
+
+        .pit:hover:not(.disabled) {
+            transform: scale(1.1);
+            box-shadow: inset 0 6px 15px rgba(0,0,0,0.6), 0 8px 25px rgba(180, 140, 80, 0.4);
+            border-color: #8b7355;
+        }
+
+        .pit.disabled {
+            cursor: not-allowed;
+            opacity: 0.8;
+        }
+
+        .pit.highlight {
+            animation: bounce-pit 0.6s ease-in-out;
+            box-shadow: inset 0 6px 15px rgba(0,0,0,0.6), 0 0 25px rgba(180, 140, 80, 0.5);
+        }
+
+        .pit.receiving {
+            animation: receive-stone 0.3s ease-out;
+            box-shadow: inset 0 6px 15px rgba(0,0,0,0.6), 0 0 20px rgba(100, 140, 110, 0.4);
+        }
+
+        .pit.emptying {
+            animation: empty-pit 0.4s ease-out;
+        }
+
+        @keyframes bounce-pit {
+            0%, 100% { transform: scale(1); }
+         Super    30% { transform: scale(1.15); }
+            60% { transform: scale(1.1); }
+        }
+
+        @keyframes receive-stone {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.08); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes empty-pit {
+            0% { transform: scale(1); }
+            50% { transform: scale(0.95); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .pit-number {
+            position: absolute;
+            font-family: 'Cinzel', serif;
+            font-size: 0.5em;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: rgba(45, 36, 24, 0.9);
+            color: #a89070;
+            border: 1px solid #5a4a35;
+        }
+
+        .top-row .pit-number {
+            bottom: -25px;
+        }
+
+        .bottom-row .pit-number {
+            top: -25px;
+        }
+
+        /* Stone visualization */
+        .stones {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 2px;
+            max-width: 50px;
+        }
+
+        .stone {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* Flying stone animation */
+        .flying-stone {
+            position: fixed;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            z-index: 10000;
+            pointer-events: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.4), inset -2px -2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Hand/scoop animation for picking up stones */
+        .scoop-effect {
+            position: absolute;
+            font-size: 1.5em;
+            z-index: 1001;
+            pointer-events: none;
+            animation: scoop 0.4s ease-out forwards;
+            filter: grayscale(0.3);
+        }
+
+        @keyframes scoop {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: scale(1.1);
+                opacity: 0.7;
+            }
+            100% {
+                transform: scale(1);
+                opacity: 0;
+            }
+        }
+
+        button {
+            padding: 12px 24px;
+            font-family: 'Cinzel', serif;
+            font-size: 1em;
+            font-weight: 500;
+            letter-spacing: 0.05em;
+            cursor: pointer;
+            background: linear-gradient(145deg, #5a4a35, #4a3c2a);
+            color: #d4c4a8;
+            border: 1px solid #6b5a45;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            position: relative;
+            top: 0;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            background: linear-gradient(145deg, #6b5a45, #5a4a35);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            border-color: #8b7355;
+        }
+
+        button:active:not(:disabled) {
+            top: 2px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        button.secondary {
+            background: linear-gradient(145deg, #3a4a40, #2a3a30);
+            border-color: #4a5a50;
+        }
+
+        button.secondary:hover:not(:disabled) {
+            background: linear-gradient(145deg, #4a5a50, #3a4a40);
+            border-color: #5a6a60;
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 18px 35px;
+            background: linear-gradient(145deg, #2d2418, #1f1a14);
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: 600;
+            min-height: 55px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+            border: 1px solid #4a3c2a;
+            color: #a89070;
+        }
+
+        .message.your-turn {
+            color: #90b0a0;
+            border-color: #4a6a5a;
+        }
+
+        .message.computer-turn {
+            color: #b09070;
+            border-color: #6a5040;
+        }
+
+        .message.game-over {
+            background: linear-gradient(145deg, #4a4030, #3a3020);
+            color: #c9a961;
+            font-size: 1.3em;
+            border-color: #6a5a40;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        /* Speed control */
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: linear-gradient(145deg, #252018, #1a1510);
+            padding: 10px 18px;
+            border-radius: 10px;
+            margin-top: 12px;
+            border: 1px solid #3a3025;
+        }
+
+        .speed-control:hover {
+            border-color: #5a4a35;
+        }
+
+        .speed-control .speed-icon {
+            font-size: 1em;
+            color: #8b7355;
+        }
+
+        .speed-control span {
+            font-weight: 600;
+            color: #8b7355;
+            font-size: 0.9em;
+        }
+
+        .speed-control input[type="range"] {
+            width: 120px;
+            height: 6px;
+            cursor: pointer;
+            accent-color: #c9a961;
+            background: linear-gradient(to right, #4a3c2a, #6a5a45);
+            border-radius: 3px;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+
+        .speed-control input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #c9a961, #a08050);
+            cursor: pointer;
+            border: 2px solid #5a4a35;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .speed-control input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #c9a961, #a08050);
+            cursor: pointer;
+            border: 2px solid #5a4a35;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+
+        /* Celebration effect */
+        .confetti {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .confetti-piece {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            animation: confetti-fall 3s ease-out forwards;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                opacity: 0.8;
+                transform: translateY(0) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+
+        /* Sound toggle */
+        .sound-toggle {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(145deg, #3d3225, #2a231b);
+            border: 2px solid #5a4a35;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.5em;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+            z-index: 100;
+            transition: all 0.3s;
+        }
+
+        .sound-toggle:hover {
+            transform: scale(1.1);
+            border-color: #8b7355;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            h1 { font-size: 1.8em; }
+            .pit { width: 50px; height: 50px; font-size: 1.1em; }
+            .kalah { width: 60px; height: 150px; font-size: 1.6em; }
+            .board { padding: 15px; gap: 8px; }
+            .pits-row { gap: 6px; }
+            .settings { padding: 10px 15px; }
+            .lang-selector { left: 75px; }
+        }
+    </style>
+</head>
+<body>
+    <button class="sound-toggle" onclick="toggleSound()" id="soundBtn">&#128266;</button>
+
+    <!-- Language selector -->
+    <div class="lang-selector">
+        <button class="lang-btn active" onclick="setLanguage('en')" id="langEn" title="English">EN</button>
+        <button class="lang-btn" onclick="setLanguage('ru')" id="langRu" title="Русский">RU</button>
+    </div>
+
+    <div class="game-container">
+        <h1 id="title">Kalah</h1>
+        <p class="subtitle" id="subtitle">The Ancient Game of Strategy</p>
+
+        <div class="settings">
+            <div class="settings-group">
+                <span class="settings-icon">○</span>
+                <label>
+                    <span id="labelPits">Pits:</span>
+                </label>
+                <div class="number-input-wrapper">
+                    <button type="button" class="number-btn" onclick="adjustNumber('numPits', -1)">−</button>
+                    <input type="number" id="numPits" value="6" min="3" max="10">
+                    <button type="button" class="number-btn" onclick="adjustNumber('numPits', 1)">+</button>
+                </div>
+            </div>
+            <div class="settings-group">
+                <span class="settings-icon">●</span>
+                <label>
+                    <span id="labelStones">Stones:</span>
+                </label>
+                <div class="number-input-wrapper">
+                    <button type="button" class="number-btn" onclick="adjustNumber('numStones', -1)">−</button>
+                    <input type="number" id="numStones" value="6" min="1" max="10">
+                    <button type="button" class="number-btn" onclick="adjustNumber('numStones', 1)">+</button>
+                </div>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-group">
+                <span class="settings-icon">◆</span>
+                <label>
+                    <span id="labelLevel">Level:</span>
+                </label>
+                <select id="difficulty">
+                    <option value="1" id="levelEasy">Novice</option>
+                    <option value="2" id="levelMedium">Candidate</option>
+                    <option value="3" selected id="levelHard">Master</option>
+                    <option value="4" id="levelWizard">Effendi</option>
+                </select>
+            </div>
+            <div class="settings-divider"></div>
+            <div class="settings-group">
+                <label class="checkbox-wrapper">
+                    <input type="checkbox" id="playerFirst" checked>
+                    <span id="labelYouFirst">You go first</span>
+                </label>
+            </div>
+            <button onclick="newGame()" id="newGameBtn">New Game</button>
+        </div>
+
+        <div class="score-board">
+            <div class="score-card"><span id="labelYou">You:</span> <span id="playerScore">0</span></div>
+            <div class="score-card"><span id="labelRobot">Opponent:</span> <span id="computerScore">0</span></div>
+        </div>
+
+        <div class="player-banner computer" id="computerLabel">Opponent</div>
+        <div class="board-wrapper">
+            <div class="board" id="board"></div>
+        </div>
+        <div class="player-banner player" id="playerLabel">You</div>
+
+        <div class="speed-control">
+            <span class="speed-icon">🐢</span>
+            <input type="range" id="speedSlider" min="200" max="600" value="400">
+            <span class="speed-icon">🐇</span>
+            <span id="speedLabel">Animation Speed</span>
+        </div>
+
+        <div class="message" id="message">Press "New Game" to begin</div>
+
+        <div class="controls">
+            <button class="secondary" onclick="getHint()" id="hintBtn">Hint</button>
+            <button class="secondary" onclick="undoMove()" id="undoBtn">Undo</button>
+        </div>
+    </div>
+
+    <div class="confetti" id="confetti"></div>
+
+    <script>
+        // ===================
+        // TRANSLATIONS
+        // ===================
+        const translations = {
+            en: {
+                title: "Super Kalah",
+                subtitle: "The Ancient Game of Strategy",
+                labelPits: "Pits:",
+                labelStones: "Stones:",
+                labelLevel: "Level:",
+                levelEasy: "Novice",
+                levelMedium: "Candidate",
+                levelHard: "Master",
+                levelWizard: "Effendi",
+                labelYouFirst: "You go first",
+                newGame: "New Game",
+                labelYou: "You:",
+                labelRobot: "Opponent:",
+                computerLabel: "Opponent",
+                playerLabel: "You",
+                speedLabel: "Animation Speed",
+                hintBtn: "Hint",
+                undoBtn: "Undo",
+                kalahYou: "YOU",
+                kalahRobot: "OPP",
+                // Messages
+                msgStart: "Press \"New Game\" to begin",
+                msgYourTurn: "Your turn - select a pit",
+                msgComputerThinking: "Thinking... [{n}]",
+                msgWatchStones: "Sowing stones...",
+                msgExtraTurn: "Extra turn! Go again",
+                msgCapture: "Capture!",
+                msgTie: "Draw!",
+                msgHint: "I suggest moving from pit {n}",
+                // Varied end-game messages (from Pascal original)
+                msgYouLose: [
+                    "Sorry, you lost...",
+                    "Don't despair - you'll win next time!",
+                    "Next time luck should be on your side.",
+                    "I suggest practicing at novice level.",
+                    "Intelligence is powerless against skill!"
+                ],
+                msgYouWin: [
+                    "Next time I'll definitely win...",
+                    "Accept my congratulations!",
+                    "I don't like losing, but you won.",
+                    "How did I manage to lose!",
+                    "It seems you won by chance."
+                ],
+                // Single move taunting messages
+                msgOnlyOneMove: [
+                    "I don't recommend moving from pit {n}!",
+                    "Think carefully which pit to move from!",
+                    "Interesting, which pit will you choose?",
+                    "What move will you make?",
+                    "I suggest moving from pit {n}!"
+                ],
+                // Advice prompt
+                msgWantAdvice: "Do you want advice?",
+                msgAdvice: "I advise making a move from pit {n}"
+            },
+            ru: {
+                title: "Супер-Калах",
+                subtitle: "Древняя игра стратегии",
+                labelPits: "Лунки:",
+                labelStones: "Камни:",
+                labelLevel: "Уровень:",
+                levelEasy: "Новичок",
+                levelMedium: "Кандидат",
+                levelHard: "Мастер",
+                levelWizard: "Эфенди",
+                labelYouFirst: "Вы ходите первым",
+                newGame: "Новая игра",
+                labelYou: "Вы:",
+                labelRobot: "Соперник:",
+                computerLabel: "Соперник",
+                playerLabel: "Вы",
+                speedLabel: "Скорость анимации",
+                hintBtn: "Подсказка",
+                undoBtn: "Отмена",
+                kalahYou: "ВЫ",
+                kalahRobot: "СОП",
+                // Messages
+                msgStart: "Нажмите \"Новая игра\" чтобы начать",
+                msgYourTurn: "Ваш ход - выберите лунку",
+                msgComputerThinking: "Думаю... [{n}]",
+                msgWatchStones: "Посев камней...",
+                msgExtraTurn: "Дополнительный ход!",
+                msgCapture: "Захват!",
+                msgTie: "Ничья!",
+                msgHint: "Советую пойти из лунки {n}",
+                // Varied end-game messages (from Pascal original)
+                msgYouLose: [
+                    "Извините, Вы проиграли...",
+                    "Не отчаивайтесь - ещё выиграете!",
+                    "Следующий раз Вам должно повезти.",
+                    "Советую потренироваться в новичках.",
+                    "Интеллект против мастерства - бессилен!"
+                ],
+                msgYouWin: [
+                    "Следующий раз обязательно выиграю...",
+                    "Примите мои поздравления!",
+                    "Не люблю проигрывать, но Ваша взяла.",
+                    "Как же это я проиграл!",
+                    "Мне кажется, что Вы случайно выиграли."
+                ],
+                // Single move taunting messages
+                msgOnlyOneMove: [
+                    "Не советую ходить из лунки {n}!",
+                    "Хорошо подумайте из какой лунки пойти!",
+                    "Интересно, из какой лунки Вы пойдёте?",
+                    "Какой же Вы сделаете ход?",
+                    "Советую пойти из лунки {n}!"
+                ],
+                // Advice prompt
+                msgWantAdvice: "Желаете получить совет?",
+                msgAdvice: "Советую сделать ход из лунки {n}"
+            }
+        };
+
+        let currentLang = 'en';
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('kalahLang', lang);
+
+            // Update language button states
+            document.getElementById('langEn').classList.toggle('active', lang === 'en');
+            document.getElementById('langRu').classList.toggle('active', lang === 'ru');
+
+            // Update all text elements
+            const t = translations[lang];
+
+            document.getElementById('title').textContent = t.title;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('labelPits').textContent = t.labelPits;
+            document.getElementById('labelStones').textContent = t.labelStones;
+            document.getElementById('labelLevel').textContent = t.labelLevel;
+            document.getElementById('levelEasy').textContent = t.levelEasy;
+            document.getElementById('levelMedium').textContent = t.levelMedium;
+            document.getElementById('levelHard').textContent = t.levelHard;
+            document.getElementById('levelWizard').textContent = t.levelWizard;
+            document.getElementById('labelYouFirst').textContent = t.labelYouFirst;
+            document.getElementById('newGameBtn').textContent = t.newGame;
+            document.getElementById('labelYou').textContent = t.labelYou;
+            document.getElementById('labelRobot').textContent = t.labelRobot;
+            document.getElementById('computerLabel').textContent = t.computerLabel;
+            document.getElementById('playerLabel').textContent = t.playerLabel;
+            document.getElementById('speedLabel').textContent = t.speedLabel;
+            document.getElementById('hintBtn').textContent = t.hintBtn;
+            document.getElementById('undoBtn').textContent = t.undoBtn;
+
+            // Update page title
+            document.title = lang === 'ru' ? 'Супер-Калах' : 'Super-Kalah';
+
+            // Update message if game not in progress
+            if (!game.isAnimating) {
+                updateMessage();
+            }
+
+            // Re-render board to update kalah labels
+            if (game.playerPits.length > 0) {
+                renderBoard();
+            }
+        }
+
+        function t(key) {
+            return translations[currentLang][key] || translations['en'][key] || key;
+        }
+
+        // Load saved language preference
+        function loadLanguage() {
+            const saved = localStorage.getItem('kalahLang');
+            if (saved && translations[saved]) {
+                setLanguage(saved);
+            } else {
+                // Try to detect browser language
+                const browserLang = navigator.language || navigator.userLanguage;
+                if (browserLang && browserLang.startsWith('ru')) {
+                    setLanguage('ru');
+                }
+            }
+        }
+
+        // ===================
+        // SOUND EFFECTS
+        // ===================
+        let audioContext = null;
+        let soundEnabled = true;
+
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playTone(frequency, duration, type = 'sine') {
+            if (!soundEnabled || !audioContext) return;
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            oscillator.frequency.value = frequency;
+            oscillator.type = type;
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + duration);
+        }
+
+        function playDropSound(pitIndex) {
+            const baseFreq = 300 + (pitIndex || 0) * 50;
+            playTone(baseFreq + Math.random() * 100, 0.15, 'sine');
+        }
+
+        function playPickupSound() {
+            playTone(200, 0.1);
+            setTimeout(() => playTone(250, 0.1), 50);
+        }
+
+        function playCapture() {
+            playTone(600, 0.1);
+            setTimeout(() => playTone(800, 0.1), 100);
+            setTimeout(() => playTone(1000, 0.2), 200);
+        }
+
+        function playExtraTurn() {
+            playTone(523, 0.1);
+            setTimeout(() => playTone(659, 0.1), 100);
+            setTimeout(() => playTone(784, 0.2), 200);
+        }
+
+        function playKalahDrop() {
+            playTone(400, 0.15);
+            setTimeout(() => playTone(600, 0.15), 80);
+        }
+
+        function playWin() {
+            const notes = [523, 659, 784, 1047];
+            notes.forEach((note, i) => {
+                setTimeout(() => playTone(note, 0.3), i * 150);
+            });
+        }
+
+        function playLose() {
+            playTone(400, 0.2);
+            setTimeout(() => playTone(350, 0.2), 200);
+            setTimeout(() => playTone(300, 0.4), 400);
+        }
+
+        function toggleSound() {
+            initAudio();
+            soundEnabled = !soundEnabled;
+            document.getElementById('soundBtn').innerHTML = soundEnabled ? '&#128266;' : '&#128263;';
+        }
+
+        // ===================
+        // INPUT HELPERS
+        // ===================
+        function adjustNumber(inputId, delta) {
+            const input = document.getElementById(inputId);
+            const min = parseInt(input.min) || 1;
+            const max = parseInt(input.max) || 10;
+            let value = parseInt(input.value) || min;
+            value = Math.max(min, Math.min(max, value + delta));
+            input.value = value;
+            playTone(300 + delta * 50, 0.05);
+        }
+
+        // ===================
+        // VICTORY EFFECT
+        // ===================
+        function createConfetti() {
+            const container = document.getElementById('confetti');
+            container.innerHTML = '';
+            // Natural, muted gold and amber tones
+            const colors = ['#c9a961', '#b8956a', '#a08050', '#d4b896', '#8b7355', '#c4a060'];
+            const shapes = ['●', '◆', '✦'];
+
+            for (let i = 0; i < 30; i++) {
+                const piece = document.createElement('div');
+                piece.className = 'confetti-piece';
+                piece.textContent = shapes[Math.floor(Math.random() * shapes.length)];
+                piece.style.left = Math.random() * 100 + 'vw';
+                piece.style.color = colors[Math.floor(Math.random() * colors.length)];
+                piece.style.fontSize = (Math.random() * 15 + 8) + 'px';
+                piece.style.animationDelay = Math.random() * 0.5 + 's';
+                container.appendChild(piece);
+            }
+
+            setTimeout(() => container.innerHTML = '', 3500);
+        }
+
+        // ===================
+        // GAME STATE
+        // ===================
+        // Natural gemstone and mineral colors
+        const stoneColors = ['#8B4513', '#2F4F4F', '#4A5D23', '#8B6914', '#5D3954', '#1E3A3A', '#6B4423', '#3D5C5C'];
+
+        function getAnimationDelay() {
+            const slider = document.getElementById('speedSlider');
+            return 450 - parseInt(slider.value);
+        }
+
+        let game = {
+            numPits: 6,
+            numStones: 4,
+            difficulty: 3,
+            playerPits: [],
+            computerPits: [],
+            playerKalah: 0,
+            computerKalah: 0,
+            isPlayerTurn: true,
+            gameOver: false,
+            isAnimating: false,
+            history: []
+        };
+
+        const MoveStatus = {
+            OK: 'ok',
+            EXTRA_TURN: 'extraTurn',
+            CAPTURE: 'capture',
+            END_OF_GAME: 'endOfGame',
+            EMPTY: 'empty',
+            BAD_MOVE: 'badMove'
+        };
+
+        function setControlsEnabled(enabled) {
+            document.getElementById('newGameBtn').disabled = !enabled;
+            document.getElementById('hintBtn').disabled = !enabled;
+            document.getElementById('undoBtn').disabled = !enabled;
+        }
+
+        // ===================
+        // NEW GAME
+        // ===================
+        function newGame() {
+            if (game.isAnimating) return;
+
+            initAudio();
+            game.numPits = parseInt(document.getElementById('numPits').value) || 6;
+            game.numStones = parseInt(document.getElementById('numStones').value) || 4;
+            game.difficulty = parseInt(document.getElementById('difficulty').value) || 3;
+            game.isPlayerTurn = document.getElementById('playerFirst').checked;
+
+            if (game.numPits < 3) game.numPits = 3;
+            if (game.numPits > 10) game.numPits = 10;
+            if (game.numStones < 1) game.numStones = 1;
+            if (game.numStones > 10) game.numStones = 10;
+
+            game.playerPits = new Array(game.numPits).fill(game.numStones);
+            game.computerPits = new Array(game.numPits).fill(game.numStones);
+            game.playerKalah = 0;
+            game.computerKalah = 0;
+            game.gameOver = false;
+            game.isAnimating = false;
+            game.history = [];
+
+            playTone(523, 0.1);
+            setTimeout(() => playTone(659, 0.1), 100);
+
+            renderBoard();
+            updateScores();
+            updateMessage();
+
+            if (!game.isPlayerTurn) {
+                setTimeout(computerMove, 800);
+            }
+        }
+
+        // ===================
+        // RENDERING
+        // ===================
+        function renderStones(count) {
+            if (count === 0) return '';
+            if (count > 12) return count;
+
+            let html = '<div class="stones">';
+            for (let i = 0; i < count; i++) {
+                const color = stoneColors[i % stoneColors.length];
+                html += `<span class="stone" style="background: ${color}; box-shadow: inset -2px -2px 4px rgba(0,0,0,0.3), 1px 1px 2px rgba(255,255,255,0.3);"></span>`;
+            }
+            html += '</div>';
+            return html;
+        }
+
+        function getElementCenter(element) {
+            const rect = element.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+        }
+
+        function createFlyingStone(fromEl, toEl, color, onComplete) {
+            const from = getElementCenter(fromEl);
+            const to = getElementCenter(toEl);
+
+            const stone = document.createElement('div');
+            stone.className = 'flying-stone';
+            stone.style.background = color;
+            stone.style.left = from.x - 9 + 'px';
+            stone.style.top = from.y - 9 + 'px';
+
+            document.body.appendChild(stone);
+
+            const duration = 200;
+            const startTime = performance.now();
+
+            function animate(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easeProgress = 1 - Math.pow(1 - progress, 2);
+
+                // Straight line trajectory
+                const x = from.x + (to.x - from.x) * easeProgress;
+                const y = from.y + (to.y - from.y) * easeProgress;
+
+                stone.style.left = x - 9 + 'px';
+                stone.style.top = y - 9 + 'px';
+
+                if (progress < 1) {
+                    requestAnimationFrame(animate);
+                } else {
+                    stone.remove();
+                    if (onComplete) onComplete();
+                }
+            }
+
+            requestAnimationFrame(animate);
+        }
+
+        function renderBoard() {
+            const board = document.getElementById('board');
+            board.innerHTML = '';
+
+            // Computer's kalah (left side)
+            const computerKalah = document.createElement('div');
+            computerKalah.className = 'kalah';
+            computerKalah.id = 'computerKalah';
+            computerKalah.innerHTML = game.computerKalah + `<span class="kalah-label">${t('kalahRobot')}</span>`;
+            board.appendChild(computerKalah);
+
+            // Pits container
+            const pitsContainer = document.createElement('div');
+            pitsContainer.className = 'pits-container';
+
+            // Computer's pits (top row, reversed)
+            const topRow = document.createElement('div');
+            topRow.className = 'pits-row top-row';
+            for (let i = game.numPits - 1; i >= 0; i--) {
+                const pit = document.createElement('div');
+                pit.className = 'pit disabled';
+                pit.id = `computer-pit-${i}`;
+
+                const count = game.computerPits[i];
+                if (count <= 12 && count > 0) {
+                    pit.innerHTML = renderStones(count);
+                } else {
+                    pit.textContent = count || '';
+                }
+
+                const label = document.createElement('span');
+                label.className = 'pit-number';
+                label.textContent = i + 1;
+                pit.appendChild(label);
+
+                topRow.appendChild(pit);
+            }
+            pitsContainer.appendChild(topRow);
+
+            // Player's pits (bottom row)
+            const bottomRow = document.createElement('div');
+            bottomRow.className = 'pits-row bottom-row';
+            for (let i = 0; i < game.numPits; i++) {
+                const pit = document.createElement('div');
+                pit.className = 'pit';
+                pit.id = `player-pit-${i}`;
+
+                const count = game.playerPits[i];
+                if (count <= 12 && count > 0) {
+                    pit.innerHTML = renderStones(count);
+                } else {
+                    pit.textContent = count || '';
+                }
+
+                pit.onclick = () => playerMove(i);
+
+                if (game.playerPits[i] === 0 || !game.isPlayerTurn || game.gameOver || game.isAnimating) {
+                    pit.classList.add('disabled');
+                }
+
+                const label = document.createElement('span');
+                label.className = 'pit-number';
+                label.textContent = i + 1;
+                pit.appendChild(label);
+
+                bottomRow.appendChild(pit);
+            }
+            pitsContainer.appendChild(bottomRow);
+
+            board.appendChild(pitsContainer);
+
+            // Player's kalah (right side)
+            const playerKalah = document.createElement('div');
+            playerKalah.className = 'kalah';
+            playerKalah.id = 'playerKalah';
+            playerKalah.innerHTML = game.playerKalah + `<span class="kalah-label">${t('kalahYou')}</span>`;
+            board.appendChild(playerKalah);
+
+            // Update labels
+            document.getElementById('playerLabel').className =
+                'player-banner player' + (game.isPlayerTurn && !game.gameOver ? ' active' : '');
+            document.getElementById('computerLabel').className =
+                'player-banner computer' + (!game.isPlayerTurn && !game.gameOver ? ' active' : '');
+        }
+
+        function updatePitDisplay(pitId, count) {
+            const pit = document.getElementById(pitId);
+            if (!pit) return;
+
+            const label = pit.querySelector('.pit-number');
+            const labelHtml = label ? label.outerHTML : '';
+
+            if (count <= 12 && count > 0) {
+                pit.innerHTML = renderStones(count) + labelHtml;
+            } else {
+                pit.innerHTML = (count || '') + labelHtml;
+            }
+        }
+
+        function updateKalahDisplay(kalahId, count) {
+            const kalah = document.getElementById(kalahId);
+            if (!kalah) return;
+            const label = kalahId === 'playerKalah' ? t('kalahYou') : t('kalahRobot');
+            kalah.innerHTML = count + `<span class="kalah-label">${label}</span>`;
+        }
+
+        function updateScores() {
+            document.getElementById('playerScore').textContent = game.playerKalah;
+            document.getElementById('computerScore').textContent = game.computerKalah;
+        }
+
+        function getRandomEndMessage(isWin) {
+            const messages = isWin ? translations[currentLang].msgYouWin : translations[currentLang].msgYouLose;
+            return messages[Math.floor(Math.random() * messages.length)];
+        }
+
+        function updateMessage(thinkingPit) {
+            const msg = document.getElementById('message');
+            if (game.gameOver) {
+                msg.className = 'message game-over';
+                const playerTotal = game.playerKalah;
+                const computerTotal = game.computerKalah;
+                if (playerTotal > computerTotal) {
+                    msg.textContent = `${getRandomEndMessage(true)} ${playerTotal} - ${computerTotal}`;
+                    createConfetti();
+                    playWin();
+                } else if (computerTotal > playerTotal) {
+                    msg.textContent = `${getRandomEndMessage(false)} ${computerTotal} - ${playerTotal}`;
+                    playLose();
+                } else {
+                    msg.textContent = `${t('msgTie')} ${playerTotal} - ${computerTotal}`;
+                }
+            } else if (game.isAnimating) {
+                msg.className = 'message computer-turn';
+                msg.textContent = t('msgWatchStones');
+            } else if (game.isPlayerTurn) {
+                msg.className = 'message your-turn';
+                msg.textContent = t('msgYourTurn');
+            } else {
+                msg.className = 'message computer-turn';
+                const thinkingMsg = t('msgComputerThinking').replace('{n}', thinkingPit !== undefined ? thinkingPit : '');
+                msg.textContent = thinkingMsg;
+            }
+        }
+
+        // ===================
+        // GAME LOGIC
+        // ===================
+        function saveState() {
+            game.history.push({
+                playerPits: [...game.playerPits],
+                computerPits: [...game.computerPits],
+                playerKalah: game.playerKalah,
+                computerKalah: game.computerKalah,
+                isPlayerTurn: game.isPlayerTurn,
+                gameOver: game.gameOver
+            });
+        }
+
+        function undoMove() {
+            if (game.history.length === 0 || game.isAnimating) return;
+
+            initAudio();
+            playTone(300, 0.1);
+
+            const state = game.history.pop();
+            game.playerPits = state.playerPits;
+            game.computerPits = state.computerPits;
+            game.playerKalah = state.playerKalah;
+            game.computerKalah = state.computerKalah;
+            game.isPlayerTurn = state.isPlayerTurn;
+            game.gameOver = state.gameOver;
+
+            renderBoard();
+            updateScores();
+            updateMessage();
+        }
+
+        function executeMove(playerPits, computerPits, playerKalah, computerKalah, pitIndex, isPlayer) {
+            const myPits = isPlayer ? playerPits : computerPits;
+            const opPits = isPlayer ? computerPits : playerPits;
+            let myKalah = isPlayer ? playerKalah : computerKalah;
+            let opKalah = isPlayer ? computerKalah : playerKalah;
+            const numPits = myPits.length;
+
+            if (pitIndex < 0 || pitIndex >= numPits) {
+                return { status: MoveStatus.BAD_MOVE, playerKalah, computerKalah };
+            }
+
+            let stones = myPits[pitIndex];
+            if (stones === 0) {
+                return { status: MoveStatus.EMPTY, playerKalah, computerKalah };
+            }
+
+            myPits[pitIndex] = 0;
+            let status = MoveStatus.OK;
+            let currentIndex = pitIndex;
+            let onMySide = true;
+            let lastIndex = -1;
+            let lastOnMySide = true;
+
+            while (stones > 0) {
+                currentIndex++;
+
+                if (onMySide) {
+                    if (currentIndex < numPits) {
+                        myPits[currentIndex]++;
+                        stones--;
+                        lastIndex = currentIndex;
+                        lastOnMySide = true;
+                    } else if (currentIndex === numPits) {
+                        myKalah++;
+                        stones--;
+                        if (stones === 0) {
+                            status = MoveStatus.EXTRA_TURN;
+                        }
+                        onMySide = false;
+                        currentIndex = -1;
+                        lastIndex = -1;
+                    }
+                } else {
+                    if (currentIndex < numPits) {
+                        opPits[currentIndex]++;
+                        stones--;
+                        lastIndex = currentIndex;
+                        lastOnMySide = false;
+                    } else {
+                        onMySide = true;
+                        currentIndex = -1;
+                    }
+                }
+            }
+
+            if (lastOnMySide && lastIndex >= 0 && lastIndex < numPits && myPits[lastIndex] === 1) {
+                const oppositeIndex = numPits - 1 - lastIndex;
+                if (opPits[oppositeIndex] > 0) {
+                    myKalah += myPits[lastIndex] + opPits[oppositeIndex];
+                    myPits[lastIndex] = 0;
+                    opPits[oppositeIndex] = 0;
+                    status = MoveStatus.CAPTURE;
+                }
+            }
+
+            if (isPlayer) {
+                playerKalah = myKalah;
+                computerKalah = opKalah;
+            } else {
+                computerKalah = myKalah;
+                playerKalah = opKalah;
+            }
+
+            const myEmpty = myPits.every(p => p === 0);
+            const opEmpty = opPits.every(p => p === 0);
+
+            if (myEmpty || opEmpty) {
+                if (myEmpty) {
+                    const remaining = opPits.reduce((a, b) => a + b, 0);
+                    if (isPlayer) {
+                        computerKalah += remaining;
+                    } else {
+                        playerKalah += remaining;
+                    }
+                    opPits.fill(0);
+                } else {
+                    const remaining = myPits.reduce((a, b) => a + b, 0);
+                    if (isPlayer) {
+                        playerKalah += remaining;
+                    } else {
+                        computerKalah += remaining;
+                    }
+                    myPits.fill(0);
+                }
+                status = MoveStatus.END_OF_GAME;
+            }
+
+            return { status, playerKalah, computerKalah };
+        }
+
+        // ===================
+        // ANIMATED MOVE
+        // ===================
+        function getStoneElement(pitElement, stoneIndex) {
+            // Get the actual stone element from the pit for animation origin
+            const stones = pitElement.querySelectorAll('.stone');
+            if (stones.length > stoneIndex) {
+                return stones[stoneIndex];
+            }
+            return pitElement;
+        }
+
+        function getElementPosition(element) {
+            const rect = element.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+        }
+
+        async function executeMoveAnimated(pitIndex, isPlayer) {
+            const delay = getAnimationDelay();
+            const myPits = isPlayer ? game.playerPits : game.computerPits;
+            const opPits = isPlayer ? game.computerPits : game.playerPits;
+            const myKalahId = isPlayer ? 'playerKalah' : 'computerKalah';
+            const opKalahId = isPlayer ? 'computerKalah' : 'playerKalah';
+            const myPitPrefix = isPlayer ? 'player-pit-' : 'computer-pit-';
+            const opPitPrefix = isPlayer ? 'computer-pit-' : 'player-pit-';
+            const numPits = game.numPits;
+
+            let stones = myPits[pitIndex];
+            if (stones === 0) return { status: MoveStatus.EMPTY };
+
+            const sourcePit = document.getElementById(myPitPrefix + pitIndex);
+            const stoneCount = myPits[pitIndex];
+
+            // Show pickup animation
+            sourcePit.classList.add('emptying');
+            playPickupSound();
+
+            let status = MoveStatus.OK;
+            let currentIndex = pitIndex;
+            let onMySide = true;
+            let lastIndex = -1;
+            let lastOnMySide = true;
+            let stonesRemaining = stoneCount;
+            let stonesPickedUp = 0;
+
+            while (stonesRemaining > 0) {
+                currentIndex++;
+
+                if (onMySide) {
+                    if (currentIndex < numPits) {
+                        const targetPit = document.getElementById(myPitPrefix + currentIndex);
+                        const color = stoneColors[stonesPickedUp % stoneColors.length];
+
+                        // Get position BEFORE updating display (to avoid detached element issue)
+                        const stonePos = getStonePosition(sourcePit, myPits[pitIndex] - 1);
+
+                        // Decrement source pit and update display to show stone leaving
+                        myPits[pitIndex]--;
+                        updatePitDisplay(myPitPrefix + pitIndex, myPits[pitIndex]);
+
+                        // Animate from the saved position
+                        await animateStoneFromPosition(stonePos, targetPit, color);
+
+                        myPits[currentIndex]++;
+                        updatePitDisplay(myPitPrefix + currentIndex, myPits[currentIndex]);
+                        targetPit.classList.add('receiving');
+                        setTimeout(() => targetPit.classList.remove('receiving'), 300);
+                        playDropSound(currentIndex);
+
+                        stonesRemaining--;
+                        stonesPickedUp++;
+                        lastIndex = currentIndex;
+                        lastOnMySide = true;
+
+                        await sleep(delay);
+                    } else if (currentIndex === numPits) {
+                        const targetKalah = document.getElementById(myKalahId);
+                        const color = stoneColors[stonesPickedUp % stoneColors.length];
+
+                        // Get position BEFORE updating display
+                        const stonePos = getStonePosition(sourcePit, myPits[pitIndex] - 1);
+
+                        // Decrement source pit and update display
+                        myPits[pitIndex]--;
+                        updatePitDisplay(myPitPrefix + pitIndex, myPits[pitIndex]);
+
+                        await animateStoneFromPosition(stonePos, targetKalah, color);
+
+                        if (isPlayer) {
+                            game.playerKalah++;
+                            updateKalahDisplay('playerKalah', game.playerKalah);
+                        } else {
+                            game.computerKalah++;
+                            updateKalahDisplay('computerKalah', game.computerKalah);
+                        }
+                        updateScores();
+
+                        targetKalah.classList.add('receiving');
+                        setTimeout(() => targetKalah.classList.remove('receiving'), 300);
+                        playKalahDrop();
+
+                        stonesRemaining--;
+                        stonesPickedUp++;
+                        if (stonesRemaining === 0) {
+                            status = MoveStatus.EXTRA_TURN;
+                        }
+                        onMySide = false;
+                        currentIndex = -1;
+                        lastIndex = -1;
+
+                        await sleep(delay);
+                    }
+                } else {
+                    if (currentIndex < numPits) {
+                        const targetPit = document.getElementById(opPitPrefix + currentIndex);
+                        const color = stoneColors[stonesPickedUp % stoneColors.length];
+
+                        // Get position BEFORE updating display
+                        const stonePos = myPits[pitIndex] > 0
+                            ? getStonePosition(sourcePit, myPits[pitIndex] - 1)
+                            : getStonePosition(sourcePit, 0);
+
+                        // Decrement source pit if stones remain
+                        if (myPits[pitIndex] > 0) {
+                            myPits[pitIndex]--;
+                            updatePitDisplay(myPitPrefix + pitIndex, myPits[pitIndex]);
+                        }
+
+                        await animateStoneFromPosition(stonePos, targetPit, color);
+
+                        opPits[currentIndex]++;
+                        updatePitDisplay(opPitPrefix + currentIndex, opPits[currentIndex]);
+                        targetPit.classList.add('receiving');
+                        setTimeout(() => targetPit.classList.remove('receiving'), 300);
+                        playDropSound(currentIndex);
+
+                        stonesRemaining--;
+                        stonesPickedUp++;
+                        lastIndex = currentIndex;
+                        lastOnMySide = false;
+
+                        await sleep(delay);
+                    } else {
+                        onMySide = true;
+                        currentIndex = -1;
+                    }
+                }
+            }
+
+            // Make sure source pit is empty
+            sourcePit.classList.remove('emptying');
+            if (myPits[pitIndex] > 0) {
+                myPits[pitIndex] = 0;
+                updatePitDisplay(myPitPrefix + pitIndex, 0);
+            }
+
+            // Check for capture
+            if (lastOnMySide && lastIndex >= 0 && lastIndex < numPits && myPits[lastIndex] === 1) {
+                const oppositeIndex = numPits - 1 - lastIndex;
+                if (opPits[oppositeIndex] > 0) {
+                    await sleep(delay);
+
+                    const msg = document.getElementById('message');
+                    msg.textContent = t('msgCapture');
+                    playCapture();
+
+                    const myPit = document.getElementById(myPitPrefix + lastIndex);
+                    const opPit = document.getElementById(opPitPrefix + oppositeIndex);
+                    const myKalah = document.getElementById(myKalahId);
+
+                    // Capture: first take the stone from my pit
+                    const myStonePos = getStonePosition(myPit, 0);
+                    const myColor = stoneColors[0];
+                    myPits[lastIndex] = 0;
+                    updatePitDisplay(myPitPrefix + lastIndex, 0);
+                    await animateStoneFromPosition(myStonePos, myKalah, myColor);
+                    playKalahDrop();
+
+                    // Then take all stones from opponent's pit one by one
+                    const opCount = opPits[oppositeIndex];
+                    for (let i = opCount - 1; i >= 0; i--) {
+                        const stonePos = getStonePosition(opPit, i);
+                        const color = stoneColors[(opCount - i) % stoneColors.length];
+                        opPits[oppositeIndex]--;
+                        updatePitDisplay(opPitPrefix + oppositeIndex, opPits[oppositeIndex]);
+                        await animateStoneFromPosition(stonePos, myKalah, color);
+                        playKalahDrop();
+                        await sleep(delay / 3);
+                    }
+
+                    if (isPlayer) {
+                        game.playerKalah += 1 + opCount;
+                        updateKalahDisplay('playerKalah', game.playerKalah);
+                    } else {
+                        game.computerKalah += 1 + opCount;
+                        updateKalahDisplay('computerKalah', game.computerKalah);
+                    }
+                    updateScores();
+
+                    myKalah.classList.add('receiving');
+                    setTimeout(() => myKalah.classList.remove('receiving'), 300);
+
+                    status = MoveStatus.CAPTURE;
+                }
+            }
+
+            // Check for game end
+            const myEmpty = myPits.every(p => p === 0);
+            const opEmpty = opPits.every(p => p === 0);
+
+            if (myEmpty || opEmpty) {
+                await sleep(delay);
+
+                if (myEmpty) {
+                    const remaining = opPits.reduce((a, b) => a + b, 0);
+                    if (remaining > 0) {
+                        const targetKalah = document.getElementById(opKalahId);
+
+                        for (let i = 0; i < numPits; i++) {
+                            while (opPits[i] > 0) {
+                                const fromPit = document.getElementById(opPitPrefix + i);
+                                const stonePos = getStonePosition(fromPit, opPits[i] - 1);
+                                const color = stoneColors[opPits[i] % stoneColors.length];
+                                opPits[i]--;
+                                updatePitDisplay(opPitPrefix + i, opPits[i]);
+                                await animateStoneFromPosition(stonePos, targetKalah, color);
+                                await sleep(delay / 4);
+                            }
+                        }
+
+                        if (isPlayer) {
+                            game.computerKalah += remaining;
+                            updateKalahDisplay('computerKalah', game.computerKalah);
+                        } else {
+                            game.playerKalah += remaining;
+                            updateKalahDisplay('playerKalah', game.playerKalah);
+                        }
+                        updateScores();
+                    }
+                } else {
+                    const remaining = myPits.reduce((a, b) => a + b, 0);
+                    if (remaining > 0) {
+                        const targetKalah = document.getElementById(myKalahId);
+
+                        for (let i = 0; i < numPits; i++) {
+                            while (myPits[i] > 0) {
+                                const fromPit = document.getElementById(myPitPrefix + i);
+                                const stonePos = getStonePosition(fromPit, myPits[i] - 1);
+                                const color = stoneColors[myPits[i] % stoneColors.length];
+                                myPits[i]--;
+                                updatePitDisplay(myPitPrefix + i, myPits[i]);
+                                await animateStoneFromPosition(stonePos, targetKalah, color);
+                                await sleep(delay / 4);
+                            }
+                        }
+
+                        if (isPlayer) {
+                            game.playerKalah += remaining;
+                            updateKalahDisplay('playerKalah', game.playerKalah);
+                        } else {
+                            game.computerKalah += remaining;
+                            updateKalahDisplay('computerKalah', game.computerKalah);
+                        }
+                        updateScores();
+                    }
+                }
+                status = MoveStatus.END_OF_GAME;
+            }
+
+            return { status };
+        }
+
+        function animateStoneToElement(fromEl, toEl, color, pitIndex) {
+            return new Promise(resolve => {
+                createFlyingStone(fromEl, toEl, color, resolve);
+            });
+        }
+
+        function getStonePosition(pitElement, stoneIndex) {
+            // Get position of a specific stone in the pit, or pit center if not found
+            const stones = pitElement.querySelectorAll('.stone');
+            let targetEl = pitElement;
+            if (stones.length > stoneIndex && stoneIndex >= 0) {
+                targetEl = stones[stoneIndex];
+            }
+            const rect = targetEl.getBoundingClientRect();
+            return {
+                x: rect.left + rect.width / 2,
+                y: rect.top + rect.height / 2
+            };
+        }
+
+        function animateStoneFromPosition(fromPos, toEl, color) {
+            return new Promise(resolve => {
+                const toRect = toEl.getBoundingClientRect();
+                const to = {
+                    x: toRect.left + toRect.width / 2,
+                    y: toRect.top + toRect.height / 2
+                };
+
+                const stone = document.createElement('div');
+                stone.className = 'flying-stone';
+                stone.style.background = color;
+                stone.style.left = fromPos.x - 9 + 'px';
+                stone.style.top = fromPos.y - 9 + 'px';
+
+                document.body.appendChild(stone);
+
+                const duration = 200;
+                const startTime = performance.now();
+
+                function animate(currentTime) {
+                    const elapsed = currentTime - startTime;
+                    const progress = Math.min(elapsed / duration, 1);
+                    // Simple ease-out for smooth deceleration
+                    const easeProgress = 1 - Math.pow(1 - progress, 2);
+
+                    // Straight line trajectory
+                    const x = fromPos.x + (to.x - fromPos.x) * easeProgress;
+                    const y = fromPos.y + (to.y - fromPos.y) * easeProgress;
+
+                    stone.style.left = x - 9 + 'px';
+                    stone.style.top = y - 9 + 'px';
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        stone.remove();
+                        resolve();
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            });
+        }
+
+        function animateStoneFromElement(fromEl, toEl, color) {
+            const fromRect = fromEl.getBoundingClientRect();
+            const fromPos = {
+                x: fromRect.left + fromRect.width / 2,
+                y: fromRect.top + fromRect.height / 2
+            };
+            return animateStoneFromPosition(fromPos, toEl, color);
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // ===================
+        // PLAYER MOVE
+        // ===================
+        async function playerMove(pitIndex) {
+            if (!game.isPlayerTurn || game.gameOver || game.playerPits[pitIndex] === 0 || game.isAnimating) {
+                return;
+            }
+
+            initAudio();
+            saveState();
+            game.isAnimating = true;
+            setControlsEnabled(false);
+            updateMessage();
+            renderBoard();
+
+            const result = await executeMoveAnimated(pitIndex, true);
+
+            game.isAnimating = false;
+            setControlsEnabled(true);
+
+            if (result.status === MoveStatus.END_OF_GAME) {
+                game.gameOver = true;
+            } else if (result.status === MoveStatus.EXTRA_TURN) {
+                const msg = document.getElementById('message');
+                msg.textContent = t('msgExtraTurn');
+                playExtraTurn();
+            } else {
+                game.isPlayerTurn = false;
+            }
+
+            renderBoard();
+            updateScores();
+
+            if (result.status !== MoveStatus.EXTRA_TURN) {
+                updateMessage();
+            }
+
+            if (!game.isPlayerTurn && !game.gameOver) {
+                setTimeout(computerMove, 500);
+            }
+        }
+
+        // ===================
+        // AI
+        // ===================
+        function minimax(playerPits, computerPits, playerKalah, computerKalah, depth, isMaximizing, alpha, beta) {
+            const playerEmpty = playerPits.every(p => p === 0);
+            const computerEmpty = computerPits.every(p => p === 0);
+
+            if (playerEmpty || computerEmpty || depth === 0) {
+                let pKalah = playerKalah;
+                let cKalah = computerKalah;
+                if (playerEmpty) {
+                    cKalah += computerPits.reduce((a, b) => a + b, 0);
+                } else if (computerEmpty) {
+                    pKalah += playerPits.reduce((a, b) => a + b, 0);
+                }
+                return cKalah - pKalah;
+            }
+
+            const pits = isMaximizing ? computerPits : playerPits;
+
+            if (isMaximizing) {
+                let maxEval = -Infinity;
+                for (let i = 0; i < pits.length; i++) {
+                    if (pits[i] === 0) continue;
+
+                    const newPlayerPits = [...playerPits];
+                    const newComputerPits = [...computerPits];
+
+                    const result = executeMove(
+                        newPlayerPits, newComputerPits,
+                        playerKalah, computerKalah,
+                        i, false
+                    );
+
+                    const extraTurn = result.status === MoveStatus.EXTRA_TURN;
+                    const gameEnd = result.status === MoveStatus.END_OF_GAME;
+
+                    let evalScore;
+                    if (gameEnd) {
+                        evalScore = result.computerKalah - result.playerKalah;
+                    } else {
+                        evalScore = minimax(
+                            newPlayerPits, newComputerPits,
+                            result.playerKalah, result.computerKalah,
+                            extraTurn ? depth : depth - 1,
+                            extraTurn,
+                            alpha, beta
+                        );
+                    }
+
+                    maxEval = Math.max(maxEval, evalScore);
+                    alpha = Math.max(alpha, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return maxEval;
+            } else {
+                let minEval = Infinity;
+                for (let i = 0; i < pits.length; i++) {
+                    if (pits[i] === 0) continue;
+
+                    const newPlayerPits = [...playerPits];
+                    const newComputerPits = [...computerPits];
+
+                    const result = executeMove(
+                        newPlayerPits, newComputerPits,
+                        playerKalah, computerKalah,
+                        i, true
+                    );
+
+                    const extraTurn = result.status === MoveStatus.EXTRA_TURN;
+                    const gameEnd = result.status === MoveStatus.END_OF_GAME;
+
+                    let evalScore;
+                    if (gameEnd) {
+                        evalScore = result.computerKalah - result.playerKalah;
+                    } else {
+                        evalScore = minimax(
+                            newPlayerPits, newComputerPits,
+                            result.playerKalah, result.computerKalah,
+                            extraTurn ? depth : depth - 1,
+                            !extraTurn,
+                            alpha, beta
+                        );
+                    }
+
+                    minEval = Math.min(minEval, evalScore);
+                    beta = Math.min(beta, evalScore);
+                    if (beta <= alpha) break;
+                }
+                return minEval;
+            }
+        }
+
+        function findBestMove() {
+            const depth = game.difficulty + 2;
+            let bestMove = -1;
+            let bestScore = -Infinity;
+
+            for (let i = 0; i < game.numPits; i++) {
+                if (game.computerPits[i] === 0) continue;
+
+                const newPlayerPits = [...game.playerPits];
+                const newComputerPits = [...game.computerPits];
+
+                const result = executeMove(
+                    newPlayerPits, newComputerPits,
+                    game.playerKalah, game.computerKalah,
+                    i, false
+                );
+
+                const extraTurn = result.status === MoveStatus.EXTRA_TURN;
+                const gameEnd = result.status === MoveStatus.END_OF_GAME;
+
+                let score;
+                if (gameEnd) {
+                    score = result.computerKalah - result.playerKalah;
+                } else {
+                    score = minimax(
+                        newPlayerPits, newComputerPits,
+                        result.playerKalah, result.computerKalah,
+                        extraTurn ? depth : depth - 1,
+                        extraTurn,
+                        -Infinity, Infinity
+                    );
+                }
+
+                if (extraTurn) score += 0.1;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = i;
+                }
+            }
+
+            return bestMove;
+        }
+
+        async function computerMove() {
+            if (game.isPlayerTurn || game.gameOver || game.isAnimating) return;
+
+            saveState();
+            game.isAnimating = true;
+            setControlsEnabled(false);
+            updateMessage();
+
+            const moveIndex = findBestMove();
+            if (moveIndex === -1) {
+                game.gameOver = true;
+                game.isAnimating = false;
+                setControlsEnabled(true);
+                renderBoard();
+                updateScores();
+                updateMessage();
+                return;
+            }
+
+            const result = await executeMoveAnimated(moveIndex, false);
+
+            game.isAnimating = false;
+            setControlsEnabled(true);
+
+            if (result.status === MoveStatus.END_OF_GAME) {
+                game.gameOver = true;
+            } else if (result.status === MoveStatus.EXTRA_TURN) {
+                playExtraTurn();
+                renderBoard();
+                updateMessage();
+                setTimeout(computerMove, 500);
+                return;
+            } else {
+                game.isPlayerTurn = true;
+            }
+
+            renderBoard();
+            updateScores();
+            updateMessage();
+        }
+
+        // ===================
+        // HINT
+        // ===================
+        function getHint() {
+            if (!game.isPlayerTurn || game.gameOver || game.isAnimating) return;
+
+            initAudio();
+            playTone(600, 0.1);
+            setTimeout(() => playTone(800, 0.1), 100);
+
+            const depth = game.difficulty + 2;
+            let bestMove = -1;
+            let bestScore = -Infinity;
+
+            for (let i = 0; i < game.numPits; i++) {
+                if (game.playerPits[i] === 0) continue;
+
+                const newPlayerPits = [...game.playerPits];
+                const newComputerPits = [...game.computerPits];
+
+                const result = executeMove(
+                    newPlayerPits, newComputerPits,
+                    game.playerKalah, game.computerKalah,
+                    i, true
+                );
+
+                const extraTurn = result.status === MoveStatus.EXTRA_TURN;
+                const gameEnd = result.status === MoveStatus.END_OF_GAME;
+
+                let score;
+                if (gameEnd) {
+                    score = result.playerKalah - result.computerKalah;
+                } else {
+                    score = -minimax(
+                        newPlayerPits, newComputerPits,
+                        result.playerKalah, result.computerKalah,
+                        extraTurn ? depth : depth - 1,
+                        !extraTurn,
+                        -Infinity, Infinity
+                    );
+                }
+
+                if (extraTurn) score += 0.1;
+
+                if (score > bestScore) {
+                    bestScore = score;
+                    bestMove = i;
+                }
+            }
+
+            if (bestMove >= 0) {
+                const pit = document.getElementById(`player-pit-${bestMove}`);
+                pit.classList.add('highlight');
+                document.getElementById('message').textContent = t('msgAdvice').replace('{n}', bestMove + 1);
+                setTimeout(() => {
+                    pit.classList.remove('highlight');
+                    updateMessage();
+                }, 1500);
+            }
+        }
+
+        // ===================
+        // INIT
+        // ===================
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes pop {
+                0% { transform: scale(0); opacity: 0; }
+                50% { transform: scale(1.2); }
+                100% { transform: scale(1); opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
+
+        // Load language and start game
+        loadLanguage();
+        newGame();
+    </script>
+</body>
+</html>
