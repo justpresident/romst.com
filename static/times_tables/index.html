@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Multiplication Tables Game</title>
+  <title>Times Tables Game</title>
   <style>
     * {
       box-sizing: border-box;
@@ -53,40 +53,99 @@
 
     .level-select {
       display: flex;
-      gap: 6px;
+      flex-direction: column;
+      gap: 12px;
       margin-bottom: 10px;
+      align-items: center;
+    }
+
+    .operation-row {
+      display: flex;
+      gap: 8px;
       flex-wrap: wrap;
       justify-content: center;
+      align-items: center;
+      background: rgba(255,255,255,0.1);
+      padding: 10px 14px;
+      border-radius: 16px;
+    }
+
+    .operation-label {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      font-size: calc(1.4rem * var(--font-scale));
+      font-weight: bold;
+      margin-right: 6px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    .operation-label.multiply {
+      background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 100%);
+      color: white;
+    }
+
+    .operation-label.divide {
+      background: linear-gradient(135deg, #4ECDC4 0%, #44A08D 100%);
+      color: white;
     }
 
     .level-btn {
-      padding: 6px 12px;
-      font-size: calc(0.85rem * var(--font-scale));
-      border: none;
-      border-radius: 6px;
+      position: relative;
+      width: 48px;
+      height: 48px;
+      padding: 0;
+      font-size: calc(1.1rem * var(--font-scale));
+      font-weight: bold;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 12px;
       cursor: pointer;
-      background: rgba(255,255,255,0.3);
+      background: rgba(255,255,255,0.15);
       color: white;
       transition: all 0.2s;
+      box-shadow: 0 3px 6px rgba(0,0,0,0.15);
     }
 
     .level-btn:hover:not(:disabled) {
-      background: rgba(255,255,255,0.5);
-      transform: scale(1.05);
+      background: rgba(255,255,255,0.3);
+      transform: scale(1.1) translateY(-2px);
+      box-shadow: 0 5px 12px rgba(0,0,0,0.25);
     }
 
     .level-btn:disabled {
-      opacity: 0.5;
+      opacity: 0.4;
       cursor: not-allowed;
+      background: rgba(0,0,0,0.2);
+      border-color: rgba(255,255,255,0.1);
     }
 
     .level-btn.active {
-      background: #4CAF50;
-      box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+      background: linear-gradient(135deg, #FFD93D 0%, #FF9F1C 100%);
+      border-color: #fff;
+      color: #333;
+      box-shadow: 0 0 16px rgba(255, 217, 61, 0.6);
+      transform: scale(1.1);
     }
 
     .level-btn.completed {
-      background: #2196F3;
+      background: linear-gradient(135deg, #6BCB77 0%, #4CAF50 100%);
+      border-color: rgba(255,255,255,0.5);
+    }
+
+    .level-btn .star {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      font-size: 16px;
+      filter: drop-shadow(0 1px 2px rgba(0,0,0,0.3));
+    }
+
+    .level-btn .lock {
+      font-size: calc(0.9rem * var(--font-scale));
+      opacity: 0.7;
     }
 
     .grid-wrapper {
@@ -564,7 +623,23 @@
         padding: 5px;
       }
       .level-btn {
-        padding: 5px 8px;
+        width: 40px;
+        height: 40px;
+        font-size: calc(1rem * var(--font-scale));
+      }
+      .level-btn .star {
+        font-size: 12px;
+        top: -4px;
+        right: -4px;
+      }
+      .operation-label {
+        width: 36px;
+        height: 36px;
+        font-size: calc(1.2rem * var(--font-scale));
+      }
+      .operation-row {
+        padding: 8px 10px;
+        gap: 6px;
       }
       .header span, .game-stats span {
         padding: 4px 8px;
@@ -603,7 +678,7 @@
   </style>
 </head>
 <body>
-  <h1>Multiplication Tables</h1>
+  <h1 id="game-title">Times Tables</h1>
 
   <div class="header" id="header">
     <span>Level: <strong id="current-level">1</strong></span>
@@ -718,6 +793,7 @@
     // Game state
     let state = {
       currentLevel: null,
+      currentOperation: 'multiplication', // 'multiplication' or 'division'
       cells: [],
       queue: [],
       currentCell: null,
@@ -730,7 +806,7 @@
       totalSolveTime: 0,
       isPlaying: false,
       answerSubmitted: false,
-      unlockedLevels: [1]
+      unlockedLevels: { multiplication: [1], division: [1] }
     };
 
     // DOM elements
@@ -762,13 +838,23 @@
     const resultTime = document.getElementById('result-time');
     const resultAccuracy = document.getElementById('result-accuracy');
     const nextBtn = document.getElementById('next-btn');
+    const gameTitle = document.getElementById('game-title');
 
     // Load progress from localStorage
     function loadProgress() {
       const saved = localStorage.getItem('multiplicationGame');
       if (saved) {
         const data = JSON.parse(saved);
-        state.unlockedLevels = data.unlockedLevels || [1];
+        // Migrate old format (single unlockedLevels array) to new format
+        if (Array.isArray(data.unlockedLevels)) {
+          state.unlockedLevels = {
+            multiplication: data.unlockedLevels,
+            division: [1]
+          };
+          saveProgress(); // Save migrated data
+        } else if (data.unlockedLevels) {
+          state.unlockedLevels = data.unlockedLevels;
+        }
       }
     }
 
@@ -779,31 +865,34 @@
       }));
     }
 
-    // Check if a level is unlocked
-    function isUnlocked(levelId) {
-      return state.unlockedLevels.includes(levelId);
+    // Check if a level is unlocked for a given operation
+    function isUnlocked(levelId, operation = state.currentOperation) {
+      return state.unlockedLevels[operation].includes(levelId);
     }
 
-    // Check if a level is completed
-    function isCompleted(levelId) {
-      return state.unlockedLevels.includes(levelId + 1);
+    // Check if a level is completed for a given operation
+    function isCompleted(levelId, operation = state.currentOperation) {
+      return state.unlockedLevels[operation].includes(levelId + 1);
     }
 
-    // Mark a level as completed (unlocks next level)
+    // Mark a level as completed (unlocks next level) for current operation
     function setCompleted(levelId) {
+      const operation = state.currentOperation;
       const nextLevelId = levelId + 1;
-      if (!state.unlockedLevels.includes(nextLevelId) && nextLevelId <= LEVELS.length) {
-        state.unlockedLevels.push(nextLevelId);
+      if (!state.unlockedLevels[operation].includes(nextLevelId) && nextLevelId <= LEVELS.length) {
+        state.unlockedLevels[operation].push(nextLevelId);
         saveProgress();
       }
     }
 
     // Unlock all levels (dev mode)
     function unlockAllLevels() {
-      LEVELS.forEach(level => {
-        if (!state.unlockedLevels.includes(level.id)) {
-          state.unlockedLevels.push(level.id);
-        }
+      ['multiplication', 'division'].forEach(operation => {
+        LEVELS.forEach(level => {
+          if (!state.unlockedLevels[operation].includes(level.id)) {
+            state.unlockedLevels[operation].push(level.id);
+          }
+        });
       });
       renderLevelSelect();
     }
@@ -811,19 +900,51 @@
     // Render level selection buttons
     function renderLevelSelect() {
       levelSelect.innerHTML = '';
-      LEVELS.forEach(level => {
-        const btn = document.createElement('button');
-        btn.className = 'level-btn';
-        btn.textContent = level.name;
 
-        btn.disabled = !isUnlocked(level.id);
-        if (isCompleted(level.id)) btn.classList.add('completed');
-        if (state.currentLevel && state.currentLevel.id === level.id) {
-          btn.classList.add('active');
-        }
+      ['multiplication', 'division'].forEach(operation => {
+        const row = document.createElement('div');
+        row.className = 'operation-row';
 
-        btn.addEventListener('click', () => selectLevel(level));
-        levelSelect.appendChild(btn);
+        const label = document.createElement('span');
+        label.className = 'operation-label ' + (operation === 'multiplication' ? 'multiply' : 'divide');
+        label.textContent = operation === 'multiplication' ? '×' : '÷';
+        row.appendChild(label);
+
+        LEVELS.forEach(level => {
+          const btn = document.createElement('button');
+          btn.className = 'level-btn';
+
+          const unlocked = isUnlocked(level.id, operation);
+          const completed = isCompleted(level.id, operation);
+
+          btn.disabled = !unlocked;
+          if (completed) btn.classList.add('completed');
+          if (state.currentLevel && state.currentLevel.id === level.id && state.currentOperation === operation) {
+            btn.classList.add('active');
+          }
+
+          // Add level number or lock icon
+          if (unlocked) {
+            btn.textContent = level.id;
+            // Add star for completed levels
+            if (completed) {
+              const star = document.createElement('span');
+              star.className = 'star';
+              star.textContent = '⭐';
+              btn.appendChild(star);
+            }
+          } else {
+            const lock = document.createElement('span');
+            lock.className = 'lock';
+            lock.textContent = '🔒';
+            btn.appendChild(lock);
+          }
+
+          btn.addEventListener('click', () => selectLevel(level, operation));
+          row.appendChild(btn);
+        });
+
+        levelSelect.appendChild(row);
       });
     }
 
@@ -856,8 +977,9 @@
     }
 
     // Select a level
-    function selectLevel(level) {
+    function selectLevel(level, operation = state.currentOperation) {
       state.currentLevel = level;
+      state.currentOperation = operation;
       state.isPlaying = false;
       clearInterval(state.cellTimerInterval);
       updateCellSize(level.gridSize);
@@ -865,6 +987,9 @@
       renderLevelSelect();
       currentLevelEl.textContent = level.id;
       startBtn.disabled = false;
+
+      // Update title based on operation
+      gameTitle.textContent = operation === 'division' ? 'Division Tables' : 'Times Tables';
 
       // Show level rules
       rulesTime.textContent = `${level.secondsPerCell} seconds per question`;
@@ -876,6 +1001,14 @@
       levelRules.classList.remove('hidden');
       startBtn.classList.remove('hidden');
       gameStats.classList.remove('visible');
+    }
+
+    // Get cell label based on operation type
+    function getCellLabel(row, col) {
+      if (state.currentOperation === 'division') {
+        return `${row * col}÷${col}`;
+      }
+      return `${row}×${col}`;
     }
 
     // Initialize the grid
@@ -923,7 +1056,7 @@
           if (isPreSolved) {
             cell.classList.add('pre-solved');
           } else {
-            cell.textContent = `${row}×${col}`;
+            cell.textContent = getCellLabel(row, col);
             state.totalToSolve++;
           }
 
@@ -999,7 +1132,7 @@
         if (!cell.preSolved) {
           cell.solved = false;
           cell.element.classList.remove('solved');
-          cell.element.textContent = `${cell.row}×${cell.col}`;
+          cell.element.textContent = getCellLabel(cell.row, cell.col);
         }
       });
 
@@ -1133,7 +1266,11 @@
       nextCell.element.classList.add('active');
 
       // Show popup
-      questionEl.textContent = `${nextCell.row} × ${nextCell.col} = ?`;
+      if (state.currentOperation === 'division') {
+        questionEl.textContent = `${nextCell.row * nextCell.col} ÷ ${nextCell.col} = ?`;
+      } else {
+        questionEl.textContent = `${nextCell.row} × ${nextCell.col} = ?`;
+      }
       feedback.textContent = '';
       feedback.className = 'feedback';
       answerInput.value = '';
@@ -1193,7 +1330,9 @@
       state.answerSubmitted = true;
 
       const answer = parseInt(answerInput.value);
-      const correct = state.currentCell.row * state.currentCell.col;
+      const correct = state.currentOperation === 'division'
+        ? state.currentCell.row  // division: product ÷ col = row
+        : state.currentCell.row * state.currentCell.col;  // multiplication: row × col
       const solveTime = stopCellTimer();
 
       if (answer === correct) {
@@ -1264,10 +1403,10 @@
       const nextLevelId = state.currentLevel.id + 1;
       const nextLevel = LEVELS.find(l => l.id === nextLevelId);
 
-      if (resultContent.classList.contains('success') && nextLevel && isUnlocked(nextLevelId)) {
-        selectLevel(nextLevel);
+      if (resultContent.classList.contains('success') && nextLevel && isUnlocked(nextLevelId, state.currentOperation)) {
+        selectLevel(nextLevel, state.currentOperation);
       } else {
-        selectLevel(state.currentLevel);
+        selectLevel(state.currentLevel, state.currentOperation);
       }
     }
 
