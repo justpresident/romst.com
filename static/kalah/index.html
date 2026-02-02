@@ -783,29 +783,85 @@
             background: linear-gradient(145deg, #2d2418, #1f1a14);
             border: 2px solid #6b5a45;
             border-radius: 16px;
-            padding: 30px;
+            padding: 0;
+            width: 95%;
             max-width: 700px;
-            max-height: 80vh;
-            overflow-y: auto;
+            max-height: 85vh;
             box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(180, 140, 80, 0.15);
             position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
         }
 
-        .rules-content::-webkit-scrollbar {
+        .rules-header {
+            padding: 20px 50px 0 25px;
+            border-bottom: 1px solid #4a3c2a;
+            flex-shrink: 0;
+        }
+
+        .rules-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5em;
+            color: #c9a961;
+            margin: 0 0 15px 0;
+            text-align: center;
+            letter-spacing: 0.05em;
+        }
+
+        .rules-tabs {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+        }
+
+        .rules-tab {
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid transparent;
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            color: #8b7355;
+            font-family: 'Cinzel', serif;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            top: 1px;
+        }
+
+        .rules-tab:hover {
+            color: #c9a961;
+            background: rgba(74, 60, 42, 0.3);
+        }
+
+        .rules-tab.active {
+            background: linear-gradient(145deg, #2d2418, #252018);
+            border-color: #4a3c2a;
+            color: #c9a961;
+        }
+
+        .rules-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .rules-body::-webkit-scrollbar {
             width: 8px;
         }
 
-        .rules-content::-webkit-scrollbar-track {
+        .rules-body::-webkit-scrollbar-track {
             background: #1a1510;
             border-radius: 4px;
         }
 
-        .rules-content::-webkit-scrollbar-thumb {
+        .rules-body::-webkit-scrollbar-thumb {
             background: #4a3c2a;
             border-radius: 4px;
         }
 
-        .rules-content::-webkit-scrollbar-thumb:hover {
+        .rules-body::-webkit-scrollbar-thumb:hover {
             background: #5a4a35;
         }
 
@@ -826,6 +882,7 @@
             justify-content: center;
             transition: all 0.2s;
             padding: 0;
+            z-index: 10;
         }
 
         .rules-close:hover {
@@ -834,29 +891,138 @@
             border-color: #6b5a45;
         }
 
-        .rules-text {
-            font-family: 'Crimson Text', Georgia, serif;
-            font-size: 1em;
-            line-height: 1.6;
-            color: #b8a888;
-            white-space: pre-wrap;
+        .rules-panel {
+            display: none;
         }
 
-        .rules-text .highlight-a {
+        .rules-panel.active {
+            display: block;
+        }
+
+        .rules-section {
+            margin-bottom: 25px;
+        }
+
+        .rules-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .rules-section-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.1em;
+            color: #c9a961;
+            margin: 0 0 12px 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #3a3025;
+        }
+
+        .rules-text {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 1.05em;
+            line-height: 1.7;
+            color: #b8a888;
+        }
+
+        .rules-text p {
+            margin: 0 0 12px 0;
+        }
+
+        .rules-text p:last-child {
+            margin-bottom: 0;
+        }
+
+        .rules-text strong {
             color: #c9a961;
             font-weight: 600;
         }
 
-        .rules-text .highlight-b {
-            color: #d4c4a8;
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
-            font-size: 1.1em;
+        .rules-text em {
+            color: #90b0a0;
+            font-style: normal;
+            font-weight: 600;
         }
 
-        .rules-text .highlight-c {
+        .rules-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0;
+            color: #a89070;
+        }
+
+        .rules-list li {
+            padding: 8px 0 8px 28px;
+            position: relative;
+            border-bottom: 1px solid #2a231b;
+        }
+
+        .rules-list li:last-child {
+            border-bottom: none;
+        }
+
+        .rules-list li::before {
+            content: attr(data-num);
+            position: absolute;
+            left: 0;
             color: #90b0a0;
             font-weight: 600;
+            font-family: 'Cinzel', serif;
+        }
+        .rules-list strong {
+            color: #c9a961;
+            font-weight: 600;
+        }
+
+        .rules-callout {
+            background: linear-gradient(145deg, #352a1f, #2a2318);
+            border-left: 3px solid #c9a961;
+            padding: 12px 15px;
+            margin: 15px 0;
+            border-radius: 0 8px 8px 0;
+            color: #a89070;
+        }
+
+        .rules-callout p {
+            margin: 0;
+        }
+
+        /* Board Diagram */
+        .board-diagram {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .board-diagram svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .diagram-caption {
+            text-align: center;
+            font-size: 0.9em;
+            color: #8b7355;
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .rules-author {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(145deg, #352a1f, #2a2318);
+            border-radius: 10px;
+            margin-top: 15px;
+        }
+
+        .rules-author-label {
+            font-size: 0.9em;
+            color: #8b7355;
+            margin-bottom: 8px;
+        }
+
+        .rules-author-name {
+            font-family: 'Cinzel', serif;
+            font-size: 1.15em;
+            color: #c9a961;
         }
 
         /* Responsive */
@@ -868,7 +1034,11 @@
             .pits-row { gap: 6px; }
             .settings { padding: 10px 15px; }
             .lang-selector { left: 75px; }
-            .rules-content { padding: 20px; }
+            .rules-content { max-width: 95%; }
+            .rules-header { padding: 15px 45px 0 15px; }
+            .rules-body { padding: 15px; }
+            .rules-tab { padding: 8px 12px; font-size: 0.8em; }
+            .rules-title { font-size: 1.3em; }
         }
     </style>
 </head>
@@ -957,7 +1127,11 @@
     <div class="rules-modal" id="rulesModal" onclick="hideRules(event)">
         <div class="rules-content" onclick="event.stopPropagation()">
             <button class="rules-close" onclick="hideRules()">&times;</button>
-            <div class="rules-text" id="rulesText"></div>
+            <div class="rules-header">
+                <h2 class="rules-title" id="rulesTitle">Rules</h2>
+                <div class="rules-tabs" id="rulesTabs"></div>
+            </div>
+            <div class="rules-body" id="rulesBody"></div>
         </div>
     </div>
 
@@ -986,49 +1160,59 @@
                 hintBtn: "Hint",
                 undoBtn: "Undo",
                 rulesBtn: "Rules",
-                rules: [
-                    "^BS u p e r - K a l a h^B",
-                    "",
-                    "Kalah is an ancient African logic game. The rules are extremely simple. But despite the apparent",
-                    "simplicity, the game requires great mental effort and utmost concentration from the players.",
-                    "The game develops attentiveness, logical abilities, and spatial imagination.",
-                    "^ATwo^A players participate. Each has ^Asix pits^A, each initially containing ^Asix stones^A.",
-                    "Additionally, each player has one more pit called the ^Akalah^A.",
-                    "The kalah is always to the ^Aright^A of the player. Players ^Aalternate^A making moves —",
-                    "^Ataking all stones from any pit^A and placing them ^Acounter-clockwise^A into all subsequent pits, including their own kalah and the opponent's pits, but ^Aexcluding the opponent's kalah^A. If a move ends in the kalah,",
-                    "the player ^Amust^A make another move. If a ^Amove ends in their own empty pit^A",
-                    "such that the opponent's pit opposite contains stones, then ^Aall stones^A from",
-                    "the opponent's pit and their own pit are ^Amoved to the kalah^A of the player",
-                    "who made the move. If at the time of the next move the player has ^Aall pits^A",
-                    "^Aempty, the game ends^A and all stones from the opponent's pits are moved to",
-                    "the opponent's kalah.",
-                    "The player who collects more stones in their kalah by the end — wins.",
-                    "",
-                    "Unlike the classic version (6 pits with 6 stones), in ^BSuper-Kalah^B you can",
-                    "have ^Aany number of pits^A, initially containing ^Aany number of stones^A.",
-                    "However, the maximum number of pits cannot exceed ^A17^A (this limitation is",
-                    "related to fitting the game board on the display).",
-                    "",
-                    "The computer plays as one of the players.",
-                    "",
-                    "The game has several ^Adifficulty levels^A:",
-                    "",
-                    "             ^C1^C — novice;",
-                    "             ^C2^C — candidate;",
-                    "             ^C3^C — master;",
-                    "             ^C4^C — effendi.",
-                    "",
-                    "As the ^Adifficulty level^A increases, the program's thinking time",
-                    "and playing strength increase.",
-                    "",
-                    "",
-                    "        I wish you success and a pleasant time!",
-                    "",
-                    "",
-                    "        ^CAuthor of the algorithm and program developer:^C",
-                    "",
-                    "             ^BStudenikin Valery Alekseevich^B"
-                ],
+                rulesTitle: "Game Rules",
+                rulesTabs: ["How to Play", "Super-Kalah"],
+                rulesContent: {
+                    basics: {
+                        intro: {
+                            title: "Introduction",
+                            text: "Kalah is an ancient African logic game. The rules are extremely simple. However, despite the apparent simplicity, the game requires significant mental effort and ultimate concentration. The game develops attentiveness, logical abilities, and spatial imagination."
+                        },
+                        setup: {
+                            title: "Game Board",
+                            text: "The game involves <strong>two players</strong>. Each player has <strong>six pits</strong>, each initially containing <strong>six stones</strong>. Additionally, each player has one large pit — the <strong>kalah</strong>. The kalah pit is always located to the player's <strong>right</strong>."
+                        },
+                        movement: {
+                            title: "Basic Move",
+                            text: "Players take turns making a move – they take <strong>all the stones from any one of their pits</strong> and distribute them <strong>counter-clockwise</strong> into all subsequent pits, including their own kalah and the opponent's pits, but <strong>excluding the opponent's kalah</strong>."
+                        },
+                        goal: {
+                            title: "Victory",
+                            text: "The game ends when all the pits of one of the players are empty. All remaining stones in the opponent's pits are moved to the opponent's kalah. The player who has collected the <strong>greater number of stones</strong> in their kalah by the end of the game wins."
+                        }
+                    },
+                    special: {
+                        extraTurn: {
+                            title: "Extra Turn",
+                            text: "If the move ends in the kalah, the player <strong>must</strong> make another move."
+                        },
+                        capture: {
+                            title: "Capture",
+                            text: "If the <strong>move ends in one's own empty pit</strong>, and there are stones in the opponent's pit directly opposite, then <strong>all stones</strong> from the opponent's pit and this pit are <strong>moved to the kalah</strong> of the player who made the move."
+                        }
+                    },
+                    superkalah: {
+                        variant: {
+                            title: "Super-Kalah Variant",
+                            text: "Unlike classic Kalah (6 pits with 6 stones each), in Super-Kalah you can have an <strong>arbitrary number of pits</strong>, which initially contain an <strong>arbitrary number of stones</strong>."
+                        },
+                        levels: {
+                            title: "Difficulty Levels",
+                            list: [
+                                { num: "1", name: "Novice", desc: "Quick, simple moves" },
+                                { num: "2", name: "Candidate", desc: "Moderate strategy" },
+                                { num: "3", name: "Master", desc: "Advanced planning" },
+                                { num: "4", name: "Effendi", desc: "Maximum difficulty" }
+                            ],
+                            text: "The higher the level, the longer the thinking time and the stronger the gameplay."
+                        }
+                    },
+                    about: {
+                        author: "Studenikin Valery Alekseevich",
+                        authorLabel: "Algorithm & Program Author",
+                        message: "I wish you success and a pleasant time!"
+                    }
+                },
                 kalahYou: "YOU",
                 kalahRobot: "OPP",
                 // Messages
@@ -1085,6 +1269,59 @@
                 hintBtn: "Подсказка",
                 undoBtn: "Отмена",
                 rulesBtn: "Правила",
+                rulesTitle: "Правила игры",
+                rulesTabs: ["Как играть", "Супер-Калах"],
+                rulesContent: {
+                    basics: {
+                        intro: {
+                            title: "Введение",
+                            text: "Калах — древняя африканская логическая игра. Правила игры предельно просты. Но несмотря на кажущуюся простоту, игра требует от игроков большого умственного напряжения и предельного сосредоточения. Игра развивает внимательность, логические способности и пространственное воображение."
+                        },
+                        setup: {
+                            title: "Игровое поле",
+                            text: "В игре участвуют <strong>двое</strong>. У каждого имеется по <strong>шесть лунок</strong>, в каждой из которых вначале лежит по <strong>шесть камней</strong>. Дополнительно каждый игрок имеет ещё одну большую лунку — <strong>калах</strong>. Лунка калах всегда находится <strong>справа</strong> от игрока."
+                        },
+                        movement: {
+                            title: "Основной ход",
+                            text: "Игроки поочерёдно делают ход - берут <strong>все камни из какой-либо своей лунки</strong> и раскладывают их <strong>против часовой стрелки</strong> во все последующие лунки, включая свой калах и лунки противника, но <strong>исключая калах противника</strong>."
+                        },
+                        goal: {
+                            title: "Победа",
+                            text: "Игра заканчивается, когда у одного из игроков все лунки пусты. Все оставшиеся камни из лунок противника переходят в калах противника. Игрок, набравший к концу игры в калахе <strong>большее число камней</strong>, - выигрывает."
+                        }
+                    },
+                    special: {
+                        extraTurn: {
+                            title: "Дополнительный ход",
+                            text: "Если ход кончается в калахе, то игрок <strong>должен</strong> сделать ещё один ход."
+                        },
+                        capture: {
+                            title: "Захват",
+                            text: "Если <strong>ход заканчивается в своей пустой лунке</strong>, так что в лунке противника напротив имеются камни, то <strong>все камни</strong> из лунки противника и этой своей лунки <strong>перекладываются в калах</strong> делавшего ход игрока"
+                        }
+                    },
+                    superkalah: {
+                        variant: {
+                            title: "Вариант Супер-Калах",
+                            text: "В отличие от классического Калаха (6 лунок по 6 камней), в Супер-Калах можно иметь <strong>произвольное число лунок</strong>, которые изначально содержат <strong>произвольное число камней</strong>."
+                        },
+                        levels: {
+                            title: "Уровни сложности",
+                            list: [
+                                { num: "1", name: "Новичок", desc: "Быстрые, простые ходы" },
+                                { num: "2", name: "Кандидат", desc: "Умеренная стратегия" },
+                                { num: "3", name: "Мастер", desc: "Продвинутое планирование" },
+                                { num: "4", name: "Эфенди", desc: "Максимальная сложность" }
+                            ],
+                            text: "Чем выше уровень, тем больше время обдумывания и сила игры."
+                        }
+                    },
+                    about: {
+                        author: "Студеникин Валерий Алексеевич",
+                        authorLabel: "Автор алгоритма и разработчик программы",
+                        message: "Желаю Вам успеха и приятно провести время!"
+                    }
+                },
                 kalahYou: "ВЫ",
                 kalahRobot: "СОП",
                 // Messages
@@ -1121,54 +1358,7 @@
                 ],
                 // Advice prompt
                 msgWantAdvice: "Желаете получить совет?",
-                msgAdvice: "Советую сделать ход из лунки {n}",
-                rules: [
-                    "^BС у п е р - К а л а х^B",
-                    "",
-                    "Калах — древняя африканская логическая игра. Правила игры предельно просты.",
-                    "Но несмотря на кажущуюся простоту — игра требует от игроков большого",
-                    "умственного напряжения и предельного сосредоточения.",
-                    "Игра развивает внимательность, логические способности и пространственное воображение.",
-                    "В игре учавствуют ^Aдвое^A. У каждого имеется по ^Aшесть лунок^A, в каждой из которых",
-                    "вначале лежит по ^Aшесть камней^A.",
-                    "Дополнительно каждый игрок имеет еще одну лунку, которая называется ^Aкалах^A.",
-                    "Лунка калах всегда находится ^Aсправа^A от игрока. Игроки ^Aпоочередно^A делают ход —",
-                    "^Aберут все камни из какой-либо лунки^A и раскладывают их ^Aпротив часовой стрелки^A",
-                    "во все последующие лунки, включая свой калах и лунки противника,",
-                    "но ^Aисключая калах противника^A. Если ход кончается в калахе, то игрок ^Aдолжен^A",
-                    "сделать еще один ход. Если ^Aход заканчивается в своей пустой лунке^A так, что",
-                    "в лунке противника напротив имеются камни, то ^Aвсе камни^A из лунки противника",
-                    "и этой своей лунки ^Aперекладываются в калах^A делавшего ход игрока.",
-                    "Если к моменту выполнения очередного хода у игрока ^Aвсе лунки пусты,^A",
-                    "^Aто игра заканчивается^A и все камни из лунок противника перекладываются",
-                    "в калах противника.",
-                    "Игрок, набравший к концу игры в калахе большее число камней — выигрывает.",
-                    "",
-                    "В отличие от классического варианта (6 лунок по 6 камней), в ^BСупер-Калах^B",
-                    "можно иметь ^Aпроизвольное число лунок^A, которые изначально содержат",
-                    "^Aпроизвольное число камней^A. Однако, максимальное количество лунок не может",
-                    "превышать ^A17^A (это ограничение связано с размещением на дисплее игрового поля).",
-                    "",
-                    "За одного игрока играет компьютер.",
-                    "",
-                    "Игра имеет несколько ^Aуровней сложности^A:",
-                    "",
-                    "             ^C1^C — новичок;",
-                    "             ^C2^C — кандидат;",
-                    "             ^C3^C — мастер;",
-                    "             ^C4^C — эфенди.",
-                    "",
-                    "При увеличении ^Aуровня сложности^A время обдумывания программой",
-                    "очередного хода и её сила игры увеличиваются.",
-                    "",
-                    "",
-                    "        Желаю Вам успеха и приятно провести время!",
-                    "",
-                    "",
-                    "        ^CАвтор алгоритма и разработчик программы:^C",
-                    "",
-                    "             ^BСтуденикин Валерий Алексеевич^B"
-                ]
+                msgAdvice: "Советую сделать ход из лунки {n}"
             }
         };
 
@@ -2461,22 +2651,219 @@
         // ===================
         // RULES MODAL
         // ===================
-        function formatRulesText(rulesArray) {
-            return rulesArray.map(line => {
-                // Replace ^B...^B with title styling
-                line = line.replace(/\^B([^^]*)\^B/g, '<span class="highlight-b">$1</span>');
-                // Replace ^A...^A with emphasis styling
-                line = line.replace(/\^A([^^]*)\^A/g, '<span class="highlight-a">$1</span>');
-                // Replace ^C...^C with accent styling
-                line = line.replace(/\^C([^^]*)\^C/g, '<span class="highlight-c">$1</span>');
-                return line;
-            }).join('\n');
+        let currentRulesTab = 0;
+
+        function getBoardDiagramSVG(isRu) {
+            const oppLabel = isRu ? 'СОП' : 'OPP';
+            const youLabel = isRu ? 'ВЫ' : 'YOU';
+            return `
+                <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+                <rect x="10" y="10" width="380" height="160" rx="12" fill="#4a3c2a" stroke="#6b5a45" stroke-width="2"/>
+
+                <rect x="20" y="25" width="40" height="130" rx="20" fill="#3d3225" stroke="#5a4a35" stroke-width="1.5"/>
+                <text x="40" y="95" text-anchor="middle" fill="#d4b896" font-size="10" font-family="Cinzel">${oppLabel}</text>
+
+                <rect x="340" y="25" width="40" height="130" rx="20" fill="#3d3225" stroke="#5a4a35" stroke-width="1.5"/>
+                <text x="360" y="95" text-anchor="middle" fill="#b0d0c0" font-size="10" font-family="Cinzel">${youLabel}</text>
+
+                <g fill="#3d3225" stroke="#5a4a35" stroke-width="1.5">
+                <circle cx="100" cy="55" r="22"/><text x="100" y="60" text-anchor="middle" fill="#d4b896" font-size="14">6</text>
+                <circle cx="150" cy="55" r="22"/><text x="150" y="60" text-anchor="middle" fill="#d4b896" font-size="14">6</text>
+                <circle cx="200" cy="55" r="22"/><text x="200" y="60" text-anchor="middle" fill="#d4b896" font-size="14">6</text>
+                <circle cx="250" cy="55" r="22"/><text x="250" y="60" text-anchor="middle" fill="#d4b896" font-size="14">6</text>
+                <circle cx="300" cy="55" r="22"/><text x="300" y="60" text-anchor="middle" fill="#d4b896" font-size="14">6</text>
+                </g>
+
+                <g fill="#3d3225" stroke="#4a8060" stroke-width="1.5">
+                <circle cx="100" cy="125" r="22"/><text x="100" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">6</text>
+                <circle cx="150" cy="125" r="22"/><text x="150" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">6</text>
+                <circle cx="200" cy="125" r="22"/><text x="200" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">6</text>
+                <circle cx="250" cy="125" r="22"/><text x="250" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">6</text>
+                <circle cx="300" cy="125" r="22"/><text x="300" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">6</text>
+                </g>
+
+                <path d="M 100 135 L 300 135 C 360 135 360 45 300 45 L 100 45 C 40 45 40 135 90 135"
+                fill="none" stroke="#c9a961" stroke-width="2.5" stroke-dasharray="6,4" opacity="0.7" stroke-linecap="round"/>
+
+                <polygon points="90,135 82,131 82,139" fill="#c9a961" transform="rotate(10, 90, 135)"/>
+                </svg>
+                `;
+        }
+
+        function getStepDiagramSVG() {
+            return `
+                <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+                    <rect x="10" y="20" width="380" height="120" rx="12" fill="#4a3c2a" stroke="#6b5a45" stroke-width="2"/>
+
+                    <g fill="#3d3225" stroke="#5a4a35" stroke-width="1.5">
+                        <circle cx="80" cy="90" r="25" stroke="#c9a961" stroke-dasharray="4,2"/>
+                        <circle cx="160" cy="90" r="25"/>
+                        <circle cx="240" cy="90" r="25"/>
+                        <circle cx="320" cy="90" r="25"/>
+                    </g>
+
+                    <path d="M 80 65 Q 120 20 160 60 Q 200 20 240 60 Q 280 20 320 60" 
+                          fill="none" stroke="#c9a961" stroke-width="2" stroke-dasharray="5,5" opacity="0.6"/>
+
+                    <circle cx="110" cy="40" r="6" fill="#f0d5a0" />
+                    <circle cx="190" cy="40" r="6" fill="#f0d5a0" />
+                    <circle cx="270" cy="40" r="6" fill="#f0d5a0" />
+
+                    <g fill="#d4b896">
+                        <circle cx="160" cy="90" r="5"/>
+                        <circle cx="240" cy="90" r="5"/>
+                        <circle cx="320" cy="90" r="5"/>
+                    </g>
+
+                    <g transform="translate(65, 50)">
+                       <path d="M 5 10 Q 15 -10 30 10 L 25 25 L 10 25 Z" fill="#d4b896" opacity="0.9"/>
+                       <text x="17" y="20" text-anchor="middle" fill="#4a3c2a" font-size="8" font-weight="bold">3</text>
+                    </g>
+                </svg>
+            `;
+        }
+
+        function getCaptureDiagramSVG(isRu) {
+            const oppLabel = isRu ? 'СОП' : 'OPP';
+            const youLabel = isRu ? 'ВЫ' : 'YOU';
+            const captureLabel = isRu ? 'Захват!' : 'Capture!';
+            return `
+                <svg viewBox="0 0 400 180" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                <polygon points="0 0, 10 3.5, 0 7" fill="#c9a961" />
+                </marker>
+                </defs>
+
+                <rect x="10" y="10" width="380" height="160" rx="12" fill="#4a3c2a" stroke="#6b5a45" stroke-width="2"/>
+
+                <rect x="20" y="25" width="40" height="130" rx="20" fill="#3d3225" stroke="#5a4a35" stroke-width="1.5"/>
+                <text x="40" y="95" text-anchor="middle" fill="#d4b896" font-size="10" font-family="Cinzel">${oppLabel}</text>
+
+                <rect x="340" y="25" width="40" height="130" rx="20" fill="#3d3225" stroke="#c9a961" stroke-width="2.5"/>
+                <text x="360" y="85" text-anchor="middle" fill="#c9a961" font-size="22" font-weight="bold">+5</text>
+                <text x="360" y="105" text-anchor="middle" fill="#b0d0c0" font-size="10" font-family="Cinzel">${youLabel}</text>
+
+                <g fill="#3d3225" stroke="#5a4a35" stroke-width="1.5">
+                <circle cx="100" cy="55" r="22"/><text x="100" y="60" text-anchor="middle" fill="#d4b896" font-size="14">3</text>
+                <circle cx="150" cy="55" r="22"/><text x="150" y="60" text-anchor="middle" fill="#d4b896" font-size="14">5</text>
+                </g>
+
+                <circle cx="200" cy="55" r="22" fill="#3d3225" stroke="#c9a961" stroke-width="2.5"/>
+                <text x="200" y="60" text-anchor="middle" fill="#c9a961" font-size="14" font-weight="bold">4</text>
+
+                <g fill="#3d3225" stroke="#5a4a35" stroke-width="1.5">
+                <circle cx="250" cy="55" r="22"/><text x="250" y="60" text-anchor="middle" fill="#d4b896" font-size="14">2</text>
+                <circle cx="300" cy="55" r="22"/><text x="300" y="60" text-anchor="middle" fill="#d4b896" font-size="14">1</text>
+                </g>
+
+                <g fill="#3d3225" stroke="#4a8060" stroke-width="1.5">
+                <circle cx="100" cy="125" r="22"/><text x="100" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">0</text>
+                <circle cx="150" cy="125" r="22"/><text x="150" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">3</text>
+                </g>
+
+                <circle cx="200" cy="125" r="22" fill="#3d3225" stroke="#c9a961" stroke-width="2.5"/>
+                <text x="200" y="130" text-anchor="middle" fill="#c9a961" font-size="14" font-weight="bold">1</text>
+
+                <g fill="#3d3225" stroke="#4a8060" stroke-width="1.5">
+                <circle cx="250" cy="125" r="22"/><text x="250" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">4</text>
+                <circle cx="300" cy="125" r="22"/><text x="300" y="130" text-anchor="middle" fill="#b0d0c0" font-size="14">2</text>
+                </g>
+
+                <path d="M 215 40 Q 280 30 335 50" fill="none" stroke="#c9a961" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+
+                <path d="M 222 120 Q 285 110 335 90" fill="none" stroke="#c9a961" stroke-width="2.5" marker-end="url(#arrowhead)"/>
+
+                <text x="270" y="80" text-anchor="middle" fill="#c9a961" font-size="12" font-weight="bold">${captureLabel}</text>
+                </svg>`;
+        }
+
+        function renderRulesContent() {
+            const t = translations[currentLang];
+            const content = t.rulesContent;
+            const tabs = t.rulesTabs;
+            const isRu = currentLang === 'ru';
+
+            // Update title
+            document.getElementById('rulesTitle').textContent = t.rulesTitle;
+
+            // Render tabs
+            const tabsContainer = document.getElementById('rulesTabs');
+            tabsContainer.innerHTML = tabs.map((tab, i) =>
+                `<button class="rules-tab${i === currentRulesTab ? ' active' : ''}" onclick="switchRulesTab(${i})">${tab}</button>`
+            ).join('');
+
+            // Render content panels
+            const bodyContainer = document.getElementById('rulesBody');
+            let html = '';
+
+            // Panel 0: Basics (merged with Special Moves)
+            html += `<div class="rules-panel${currentRulesTab === 0 ? ' active' : ''}" data-panel="0">
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${content.basics.intro.title}</h3>
+                    <div class="rules-text"><p>${content.basics.intro.text}</p></div>
+                </div>
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${content.basics.setup.title}</h3>
+                    <div class="rules-text"><p>${content.basics.setup.text}</p></div>
+                    <div class="board-diagram">${getBoardDiagramSVG(isRu)}</div>
+                </div>
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${content.basics.movement.title}</h3>
+                    <div class="rules-text"><p>${content.basics.movement.text}</p></div>
+                    <div class="board-diagram">${getStepDiagramSVG()}</div>
+                </div>
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${content.special.extraTurn.title}</h3>
+                    <div class="rules-text"><p>${content.special.extraTurn.text}</p></div>
+                </div>
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${content.special.capture.title}</h3>
+                    <div class="rules-text"><p>${content.special.capture.text}</p></div>
+                    <div class="board-diagram">${getCaptureDiagramSVG(isRu)}</div>
+                </div>
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${content.basics.goal.title}</h3>
+                    <div class="rules-text"><p>${content.basics.goal.text}</p></div>
+                </div>
+            </div>`;
+
+            // Panel 1: Super-Kalah (merged with About)
+            const levels = content.superkalah.levels;
+            html += `<div class="rules-panel${currentRulesTab === 1 ? ' active' : ''}" data-panel="1">
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${content.superkalah.variant.title}</h3>
+                    <div class="rules-text"><p>${content.superkalah.variant.text}</p></div>
+                </div>
+                <div class="rules-section">
+                    <h3 class="rules-section-title">${levels.title}</h3>
+                    <ul class="rules-list">
+                        ${levels.list.map(l => `<li data-num="${l.num}"><strong>${l.name}</strong> — ${l.desc}</li>`).join('')}
+                    </ul>
+                    <div class="rules-text"><p>${levels.text}</p></div>
+                </div>
+                <div class="rules-section">
+                    <div class="rules-callout" style="border-left-color: #90b0a0; text-align: center;">
+                        <p style="font-size: 1.1em; margin-bottom: 0;">${content.about.message}</p>
+                    </div>
+                </div>
+                <div class="rules-author">
+                    <div class="rules-author-label">${content.about.authorLabel}</div>
+                    <div class="rules-author-name">${content.about.author}</div>
+                </div>
+            </div>`;
+
+            bodyContainer.innerHTML = html;
+        }
+
+        function switchRulesTab(index) {
+            currentRulesTab = index;
+            renderRulesContent();
         }
 
         function showRules() {
-            const rules = translations[currentLang].rules;
-            const rulesText = document.getElementById('rulesText');
-            rulesText.innerHTML = formatRulesText(rules);
+            currentRulesTab = 0;
+            renderRulesContent();
             document.getElementById('rulesModal').classList.add('show');
             document.body.style.overflow = 'hidden';
         }
