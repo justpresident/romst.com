@@ -874,7 +874,7 @@
 
         <div class="speed-control">
             <span class="speed-icon">🐢</span>
-            <input type="range" id="speedSlider" min="200" max="600" value="400">
+            <input type="range" id="speedSlider" min="200" max="450" value="400">
             <span class="speed-icon">🐇</span>
             <span id="speedLabel">Animation Speed</span>
         </div>
@@ -1207,6 +1207,25 @@
             isAnimating: false,
             history: []
         };
+
+        // Debug: validate total stone count is correct
+        function validateStoneCount() {
+            const expectedTotal = game.numPits * game.numStones * 2;
+            const actualTotal = game.playerPits.reduce((a, b) => a + b, 0) +
+                               game.computerPits.reduce((a, b) => a + b, 0) +
+                               game.playerKalah + game.computerKalah;
+            if (actualTotal !== expectedTotal) {
+                console.error(`Stone count mismatch! Expected ${expectedTotal}, got ${actualTotal}`);
+                console.error('State:', JSON.stringify({
+                    playerPits: game.playerPits,
+                    computerPits: game.computerPits,
+                    playerKalah: game.playerKalah,
+                    computerKalah: game.computerKalah
+                }));
+                return false;
+            }
+            return true;
+        }
 
         const MoveStatus = {
             OK: 'ok',
@@ -1603,148 +1622,76 @@
         // ===================
         // ANIMATED MOVE
         // ===================
-        function getStoneElement(pitElement, stoneIndex) {
-            // Get the actual stone element from the pit for animation origin
-            const stones = pitElement.querySelectorAll('.stone');
-            if (stones.length > stoneIndex) {
-                return stones[stoneIndex];
-            }
-            return pitElement;
-        }
 
-        function getElementPosition(element) {
-            const rect = element.getBoundingClientRect();
-            return {
-                x: rect.left + rect.width / 2,
-                y: rect.top + rect.height / 2
+        // Compute move plan without modifying state - returns sequence of animations
+        function computeMovePlan(playerPits, computerPits, playerKalah, computerKalah, pitIndex, isPlayer) {
+            const myPits = isPlayer ? [...playerPits] : [...computerPits];
+            const opPits = isPlayer ? [...computerPits] : [...playerPits];
+            let myKalah = isPlayer ? playerKalah : computerKalah;
+            const numPits = myPits.length;
+
+            const plan = {
+                moves: [],  // Array of {from: {type, index}, to: {type, index}}
+                captures: null,  // {myPitIndex, opPitIndex, myStones, opStones}
+                endGame: null,  // {collector: 'player'|'computer', remaining: [{pitIndex, count}]}
+                finalState: {
+                    playerPits: [...playerPits],
+                    computerPits: [...computerPits],
+                    playerKalah: playerKalah,
+                    computerKalah: computerKalah
+                },
+                status: MoveStatus.OK
             };
-        }
-
-        async function executeMoveAnimated(pitIndex, isPlayer) {
-            const delay = getAnimationDelay();
-            const myPits = isPlayer ? game.playerPits : game.computerPits;
-            const opPits = isPlayer ? game.computerPits : game.playerPits;
-            const myKalahId = isPlayer ? 'playerKalah' : 'computerKalah';
-            const opKalahId = isPlayer ? 'computerKalah' : 'playerKalah';
-            const myPitPrefix = isPlayer ? 'player-pit-' : 'computer-pit-';
-            const opPitPrefix = isPlayer ? 'computer-pit-' : 'player-pit-';
-            const numPits = game.numPits;
 
             let stones = myPits[pitIndex];
-            if (stones === 0) return { status: MoveStatus.EMPTY };
+            if (stones === 0) {
+                plan.status = MoveStatus.EMPTY;
+                return plan;
+            }
 
-            const sourcePit = document.getElementById(myPitPrefix + pitIndex);
-            const stoneCount = myPits[pitIndex];
-
-            // Show pickup animation
-            sourcePit.classList.add('emptying');
-            playPickupSound();
-
-            let status = MoveStatus.OK;
+            myPits[pitIndex] = 0;
             let currentIndex = pitIndex;
             let onMySide = true;
             let lastIndex = -1;
             let lastOnMySide = true;
-            let stonesRemaining = stoneCount;
-            let stonesPickedUp = 0;
 
-            while (stonesRemaining > 0) {
+            while (stones > 0) {
                 currentIndex++;
 
                 if (onMySide) {
                     if (currentIndex < numPits) {
-                        const targetPit = document.getElementById(myPitPrefix + currentIndex);
-                        const color = stoneColors[stonesPickedUp % stoneColors.length];
-
-                        // Get position BEFORE updating display (to avoid detached element issue)
-                        const stonePos = getStonePosition(sourcePit, myPits[pitIndex] - 1);
-
-                        // Decrement source pit and update display to show stone leaving
-                        myPits[pitIndex]--;
-                        updatePitDisplay(myPitPrefix + pitIndex, myPits[pitIndex]);
-
-                        // Animate from the saved position
-                        await animateStoneFromPosition(stonePos, targetPit, color);
-
+                        plan.moves.push({
+                            from: {type: isPlayer ? 'player' : 'computer', index: pitIndex},
+                            to: {type: isPlayer ? 'player' : 'computer', index: currentIndex}
+                        });
                         myPits[currentIndex]++;
-                        updatePitDisplay(myPitPrefix + currentIndex, myPits[currentIndex]);
-                        targetPit.classList.add('receiving');
-                        setTimeout(() => targetPit.classList.remove('receiving'), 300);
-                        playDropSound(currentIndex);
-
-                        stonesRemaining--;
-                        stonesPickedUp++;
+                        stones--;
                         lastIndex = currentIndex;
                         lastOnMySide = true;
-
-                        await sleep(delay);
                     } else if (currentIndex === numPits) {
-                        const targetKalah = document.getElementById(myKalahId);
-                        const color = stoneColors[stonesPickedUp % stoneColors.length];
-
-                        // Get position BEFORE updating display
-                        const stonePos = getStonePosition(sourcePit, myPits[pitIndex] - 1);
-
-                        // Decrement source pit and update display
-                        myPits[pitIndex]--;
-                        updatePitDisplay(myPitPrefix + pitIndex, myPits[pitIndex]);
-
-                        await animateStoneFromPosition(stonePos, targetKalah, color);
-
-                        if (isPlayer) {
-                            game.playerKalah++;
-                            updateKalahDisplay('playerKalah', game.playerKalah);
-                        } else {
-                            game.computerKalah++;
-                            updateKalahDisplay('computerKalah', game.computerKalah);
-                        }
-                        updateScores();
-
-                        targetKalah.classList.add('receiving');
-                        setTimeout(() => targetKalah.classList.remove('receiving'), 300);
-                        playKalahDrop();
-
-                        stonesRemaining--;
-                        stonesPickedUp++;
-                        if (stonesRemaining === 0) {
-                            status = MoveStatus.EXTRA_TURN;
+                        plan.moves.push({
+                            from: {type: isPlayer ? 'player' : 'computer', index: pitIndex},
+                            to: {type: 'kalah', owner: isPlayer ? 'player' : 'computer'}
+                        });
+                        myKalah++;
+                        stones--;
+                        if (stones === 0) {
+                            plan.status = MoveStatus.EXTRA_TURN;
                         }
                         onMySide = false;
                         currentIndex = -1;
                         lastIndex = -1;
-
-                        await sleep(delay);
                     }
                 } else {
                     if (currentIndex < numPits) {
-                        const targetPit = document.getElementById(opPitPrefix + currentIndex);
-                        const color = stoneColors[stonesPickedUp % stoneColors.length];
-
-                        // Get position BEFORE updating display
-                        const stonePos = myPits[pitIndex] > 0
-                            ? getStonePosition(sourcePit, myPits[pitIndex] - 1)
-                            : getStonePosition(sourcePit, 0);
-
-                        // Decrement source pit if stones remain
-                        if (myPits[pitIndex] > 0) {
-                            myPits[pitIndex]--;
-                            updatePitDisplay(myPitPrefix + pitIndex, myPits[pitIndex]);
-                        }
-
-                        await animateStoneFromPosition(stonePos, targetPit, color);
-
+                        plan.moves.push({
+                            from: {type: isPlayer ? 'player' : 'computer', index: pitIndex},
+                            to: {type: isPlayer ? 'computer' : 'player', index: currentIndex}
+                        });
                         opPits[currentIndex]++;
-                        updatePitDisplay(opPitPrefix + currentIndex, opPits[currentIndex]);
-                        targetPit.classList.add('receiving');
-                        setTimeout(() => targetPit.classList.remove('receiving'), 300);
-                        playDropSound(currentIndex);
-
-                        stonesRemaining--;
-                        stonesPickedUp++;
+                        stones--;
                         lastIndex = currentIndex;
                         lastOnMySide = false;
-
-                        await sleep(delay);
                     } else {
                         onMySide = true;
                         currentIndex = -1;
@@ -1752,61 +1699,32 @@
                 }
             }
 
-            // Make sure source pit is empty
-            sourcePit.classList.remove('emptying');
-            if (myPits[pitIndex] > 0) {
-                myPits[pitIndex] = 0;
-                updatePitDisplay(myPitPrefix + pitIndex, 0);
-            }
-
             // Check for capture
             if (lastOnMySide && lastIndex >= 0 && lastIndex < numPits && myPits[lastIndex] === 1) {
                 const oppositeIndex = numPits - 1 - lastIndex;
                 if (opPits[oppositeIndex] > 0) {
-                    await sleep(delay);
-
-                    const msg = document.getElementById('message');
-                    msg.textContent = t('msgCapture');
-                    playCapture();
-
-                    const myPit = document.getElementById(myPitPrefix + lastIndex);
-                    const opPit = document.getElementById(opPitPrefix + oppositeIndex);
-                    const myKalah = document.getElementById(myKalahId);
-
-                    // Capture: first take the stone from my pit
-                    const myStonePos = getStonePosition(myPit, 0);
-                    const myColor = stoneColors[0];
+                    plan.captures = {
+                        myPitIndex: lastIndex,
+                        opPitIndex: oppositeIndex,
+                        myStones: myPits[lastIndex],
+                        opStones: opPits[oppositeIndex]
+                    };
+                    myKalah += myPits[lastIndex] + opPits[oppositeIndex];
                     myPits[lastIndex] = 0;
-                    updatePitDisplay(myPitPrefix + lastIndex, 0);
-                    await animateStoneFromPosition(myStonePos, myKalah, myColor);
-                    playKalahDrop();
-
-                    // Then take all stones from opponent's pit one by one
-                    const opCount = opPits[oppositeIndex];
-                    for (let i = opCount - 1; i >= 0; i--) {
-                        const stonePos = getStonePosition(opPit, i);
-                        const color = stoneColors[(opCount - i) % stoneColors.length];
-                        opPits[oppositeIndex]--;
-                        updatePitDisplay(opPitPrefix + oppositeIndex, opPits[oppositeIndex]);
-                        await animateStoneFromPosition(stonePos, myKalah, color);
-                        playKalahDrop();
-                        await sleep(delay / 3);
-                    }
-
-                    if (isPlayer) {
-                        game.playerKalah += 1 + opCount;
-                        updateKalahDisplay('playerKalah', game.playerKalah);
-                    } else {
-                        game.computerKalah += 1 + opCount;
-                        updateKalahDisplay('computerKalah', game.computerKalah);
-                    }
-                    updateScores();
-
-                    myKalah.classList.add('receiving');
-                    setTimeout(() => myKalah.classList.remove('receiving'), 300);
-
-                    status = MoveStatus.CAPTURE;
+                    opPits[oppositeIndex] = 0;
+                    plan.status = MoveStatus.CAPTURE;
                 }
+            }
+
+            // Update final state
+            if (isPlayer) {
+                plan.finalState.playerPits = myPits;
+                plan.finalState.computerPits = opPits;
+                plan.finalState.playerKalah = myKalah;
+            } else {
+                plan.finalState.computerPits = myPits;
+                plan.finalState.playerPits = opPits;
+                plan.finalState.computerKalah = myKalah;
             }
 
             // Check for game end
@@ -1814,71 +1732,51 @@
             const opEmpty = opPits.every(p => p === 0);
 
             if (myEmpty || opEmpty) {
-                await sleep(delay);
-
                 if (myEmpty) {
                     const remaining = opPits.reduce((a, b) => a + b, 0);
                     if (remaining > 0) {
-                        const targetKalah = document.getElementById(opKalahId);
-
+                        plan.endGame = {
+                            collector: isPlayer ? 'computer' : 'player',
+                            pits: []
+                        };
                         for (let i = 0; i < numPits; i++) {
-                            while (opPits[i] > 0) {
-                                const fromPit = document.getElementById(opPitPrefix + i);
-                                const stonePos = getStonePosition(fromPit, opPits[i] - 1);
-                                const color = stoneColors[opPits[i] % stoneColors.length];
-                                opPits[i]--;
-                                updatePitDisplay(opPitPrefix + i, opPits[i]);
-                                await animateStoneFromPosition(stonePos, targetKalah, color);
-                                await sleep(delay / 4);
+                            if (opPits[i] > 0) {
+                                plan.endGame.pits.push({index: i, count: opPits[i]});
                             }
                         }
-
                         if (isPlayer) {
-                            game.computerKalah += remaining;
-                            updateKalahDisplay('computerKalah', game.computerKalah);
+                            plan.finalState.computerKalah += remaining;
                         } else {
-                            game.playerKalah += remaining;
-                            updateKalahDisplay('playerKalah', game.playerKalah);
+                            plan.finalState.playerKalah += remaining;
                         }
-                        updateScores();
                     }
+                    plan.finalState.computerPits = new Array(numPits).fill(0);
+                    plan.finalState.playerPits = isPlayer ? myPits : new Array(numPits).fill(0);
                 } else {
                     const remaining = myPits.reduce((a, b) => a + b, 0);
                     if (remaining > 0) {
-                        const targetKalah = document.getElementById(myKalahId);
-
+                        plan.endGame = {
+                            collector: isPlayer ? 'player' : 'computer',
+                            pits: []
+                        };
                         for (let i = 0; i < numPits; i++) {
-                            while (myPits[i] > 0) {
-                                const fromPit = document.getElementById(myPitPrefix + i);
-                                const stonePos = getStonePosition(fromPit, myPits[i] - 1);
-                                const color = stoneColors[myPits[i] % stoneColors.length];
-                                myPits[i]--;
-                                updatePitDisplay(myPitPrefix + i, myPits[i]);
-                                await animateStoneFromPosition(stonePos, targetKalah, color);
-                                await sleep(delay / 4);
+                            if (myPits[i] > 0) {
+                                plan.endGame.pits.push({index: i, count: myPits[i]});
                             }
                         }
-
                         if (isPlayer) {
-                            game.playerKalah += remaining;
-                            updateKalahDisplay('playerKalah', game.playerKalah);
+                            plan.finalState.playerKalah += remaining;
                         } else {
-                            game.computerKalah += remaining;
-                            updateKalahDisplay('computerKalah', game.computerKalah);
+                            plan.finalState.computerKalah += remaining;
                         }
-                        updateScores();
                     }
+                    plan.finalState.playerPits = isPlayer ? new Array(numPits).fill(0) : opPits;
+                    plan.finalState.computerPits = isPlayer ? opPits : new Array(numPits).fill(0);
                 }
-                status = MoveStatus.END_OF_GAME;
+                plan.status = MoveStatus.END_OF_GAME;
             }
 
-            return { status };
-        }
-
-        function animateStoneToElement(fromEl, toEl, color, pitIndex) {
-            return new Promise(resolve => {
-                createFlyingStone(fromEl, toEl, color, resolve);
-            });
+            return plan;
         }
 
         function getStonePosition(pitElement, stoneIndex) {
@@ -1893,6 +1791,178 @@
                 x: rect.left + rect.width / 2,
                 y: rect.top + rect.height / 2
             };
+        }
+
+        async function executeMoveAnimated(pitIndex, isPlayer) {
+            const delay = getAnimationDelay();
+            const numPits = game.numPits;
+
+            // Compute the move plan FIRST using pure logic
+            const plan = computeMovePlan(
+                game.playerPits, game.computerPits,
+                game.playerKalah, game.computerKalah,
+                pitIndex, isPlayer
+            );
+
+            if (plan.status === MoveStatus.EMPTY) {
+                return { status: MoveStatus.EMPTY };
+            }
+
+            const myPitPrefix = isPlayer ? 'player-pit-' : 'computer-pit-';
+            const opPitPrefix = isPlayer ? 'computer-pit-' : 'player-pit-';
+            const sourcePit = document.getElementById(myPitPrefix + pitIndex);
+
+            // Create a visual copy of current stone count for animation
+            let visualSourceStones = isPlayer ? game.playerPits[pitIndex] : game.computerPits[pitIndex];
+
+            // Show pickup animation
+            sourcePit.classList.add('emptying');
+            playPickupSound();
+
+            // Animate each stone move from the plan
+            for (let i = 0; i < plan.moves.length; i++) {
+                const move = plan.moves[i];
+                const color = stoneColors[i % stoneColors.length];
+
+                // Get source position from current visual state
+                const stonePos = getStonePosition(sourcePit, Math.max(0, visualSourceStones - 1));
+
+                // Visually decrement source and update display
+                visualSourceStones--;
+                updatePitDisplay(myPitPrefix + pitIndex, Math.max(0, visualSourceStones));
+
+                // Determine target element
+                let targetEl;
+                if (move.to.type === 'kalah') {
+                    targetEl = document.getElementById(move.to.owner === 'player' ? 'playerKalah' : 'computerKalah');
+                } else {
+                    const prefix = move.to.type === 'player' ? 'player-pit-' : 'computer-pit-';
+                    targetEl = document.getElementById(prefix + move.to.index);
+                }
+
+                // Animate the stone
+                await animateStoneFromPosition(stonePos, targetEl, color);
+
+                // Update visual display of destination (incremental for visual feedback)
+                if (move.to.type === 'kalah') {
+                    // Show incremental kalah count during animation
+                    const kalahId = move.to.owner === 'player' ? 'playerKalah' : 'computerKalah';
+                    const currentVisual = move.to.owner === 'player'
+                        ? game.playerKalah + plan.moves.slice(0, i + 1).filter(m => m.to.type === 'kalah' && m.to.owner === 'player').length
+                        : game.computerKalah + plan.moves.slice(0, i + 1).filter(m => m.to.type === 'kalah' && m.to.owner === 'computer').length;
+                    updateKalahDisplay(kalahId, currentVisual);
+                    playKalahDrop();
+                } else {
+                    // Count how many stones have landed in this pit so far
+                    const prefix = move.to.type === 'player' ? 'player-pit-' : 'computer-pit-';
+                    const basePits = move.to.type === 'player' ? game.playerPits : game.computerPits;
+                    const landedCount = plan.moves.slice(0, i + 1).filter(m =>
+                        m.to.type === move.to.type && m.to.index === move.to.index
+                    ).length;
+                    updatePitDisplay(prefix + move.to.index, basePits[move.to.index] + landedCount);
+                    playDropSound(move.to.index);
+                }
+
+                targetEl.classList.add('receiving');
+                setTimeout(() => targetEl.classList.remove('receiving'), 300);
+
+                await sleep(delay);
+            }
+
+            sourcePit.classList.remove('emptying');
+
+            // Handle capture animation
+            if (plan.captures) {
+                await sleep(delay);
+
+                const msg = document.getElementById('message');
+                msg.textContent = t('msgCapture');
+                playCapture();
+
+                const myPit = document.getElementById(myPitPrefix + plan.captures.myPitIndex);
+                const opPit = document.getElementById(opPitPrefix + plan.captures.opPitIndex);
+                const myKalahEl = document.getElementById(isPlayer ? 'playerKalah' : 'computerKalah');
+                const myKalahId = isPlayer ? 'playerKalah' : 'computerKalah';
+
+                // Track visual kalah count during capture
+                // Start with kalah count after the normal sowing (before capture)
+                const kalahAfterSowing = isPlayer
+                    ? game.playerKalah + plan.moves.filter(m => m.to.type === 'kalah' && m.to.owner === 'player').length
+                    : game.computerKalah + plan.moves.filter(m => m.to.type === 'kalah' && m.to.owner === 'computer').length;
+                let visualKalahCount = kalahAfterSowing;
+
+                // Capture: first take the stone from my pit
+                const myStonePos = getStonePosition(myPit, 0);
+                const myColor = stoneColors[0];
+                updatePitDisplay(myPitPrefix + plan.captures.myPitIndex, 0);
+                await animateStoneFromPosition(myStonePos, myKalahEl, myColor);
+                visualKalahCount++;
+                updateKalahDisplay(myKalahId, visualKalahCount);
+                playKalahDrop();
+
+                // Then take all stones from opponent's pit one by one
+                for (let i = plan.captures.opStones - 1; i >= 0; i--) {
+                    const stonePos = getStonePosition(opPit, i);
+                    const color = stoneColors[(plan.captures.opStones - i) % stoneColors.length];
+                    updatePitDisplay(opPitPrefix + plan.captures.opPitIndex, i);
+                    await animateStoneFromPosition(stonePos, myKalahEl, color);
+                    visualKalahCount++;
+                    updateKalahDisplay(myKalahId, visualKalahCount);
+                    playKalahDrop();
+                    await sleep(delay / 3);
+                }
+
+                myKalahEl.classList.add('receiving');
+                setTimeout(() => myKalahEl.classList.remove('receiving'), 300);
+            }
+
+            // Handle end game collection animation
+            if (plan.endGame) {
+                await sleep(delay);
+
+                const collectorKalahEl = document.getElementById(plan.endGame.collector === 'player' ? 'playerKalah' : 'computerKalah');
+                const collectorKalahId = plan.endGame.collector === 'player' ? 'playerKalah' : 'computerKalah';
+                const pitPrefix = plan.endGame.collector === 'player' ? 'player-pit-' : 'computer-pit-';
+
+                // Calculate visual kalah count at this point (after sowing and possible capture)
+                let visualKalahCount;
+                if (plan.endGame.collector === 'player') {
+                    visualKalahCount = game.playerKalah + plan.moves.filter(m => m.to.type === 'kalah' && m.to.owner === 'player').length;
+                    if (plan.captures && isPlayer) {
+                        visualKalahCount += plan.captures.myStones + plan.captures.opStones;
+                    }
+                } else {
+                    visualKalahCount = game.computerKalah + plan.moves.filter(m => m.to.type === 'kalah' && m.to.owner === 'computer').length;
+                    if (plan.captures && !isPlayer) {
+                        visualKalahCount += plan.captures.myStones + plan.captures.opStones;
+                    }
+                }
+
+                for (const pitInfo of plan.endGame.pits) {
+                    const fromPit = document.getElementById(pitPrefix + pitInfo.index);
+                    for (let i = pitInfo.count - 1; i >= 0; i--) {
+                        const stonePos = getStonePosition(fromPit, i);
+                        const color = stoneColors[(pitInfo.count - i) % stoneColors.length];
+                        updatePitDisplay(pitPrefix + pitInfo.index, i);
+                        await animateStoneFromPosition(stonePos, collectorKalahEl, color);
+                        visualKalahCount++;
+                        updateKalahDisplay(collectorKalahId, visualKalahCount);
+                        playKalahDrop();
+                        await sleep(delay / 4);
+                    }
+                }
+            }
+
+            // Apply final state atomically - this is the source of truth
+            game.playerPits = plan.finalState.playerPits;
+            game.computerPits = plan.finalState.computerPits;
+            game.playerKalah = plan.finalState.playerKalah;
+            game.computerKalah = plan.finalState.computerKalah;
+
+            // Update all displays to match final state
+            updateScores();
+
+            return { status: plan.status };
         }
 
         function animateStoneFromPosition(fromPos, toEl, color) {
@@ -1939,15 +2009,6 @@
             });
         }
 
-        function animateStoneFromElement(fromEl, toEl, color) {
-            const fromRect = fromEl.getBoundingClientRect();
-            const fromPos = {
-                x: fromRect.left + fromRect.width / 2,
-                y: fromRect.top + fromRect.height / 2
-            };
-            return animateStoneFromPosition(fromPos, toEl, color);
-        }
-
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
@@ -1984,6 +2045,7 @@
 
             renderBoard();
             updateScores();
+            validateStoneCount();  // Debug assertion
 
             if (result.status !== MoveStatus.EXTRA_TURN) {
                 updateMessage();
@@ -2160,6 +2222,7 @@
             } else if (result.status === MoveStatus.EXTRA_TURN) {
                 playExtraTurn();
                 renderBoard();
+                validateStoneCount();  // Debug assertion
                 updateMessage();
                 setTimeout(computerMove, 500);
                 return;
@@ -2169,6 +2232,7 @@
 
             renderBoard();
             updateScores();
+            validateStoneCount();  // Debug assertion
             updateMessage();
         }
 
