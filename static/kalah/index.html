@@ -298,33 +298,6 @@
             margin: 0 8px;
         }
 
-        .score-board {
-            display: flex;
-            gap: 30px;
-            margin-bottom: 15px;
-        }
-
-        .score-card {
-            background: linear-gradient(145deg, #4a3c2a, #3d3225);
-            padding: 12px 25px;
-            border-radius: 10px;
-            color: #d4c4a8;
-            font-weight: 600;
-            font-size: 1.1em;
-            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
-            border: 1px solid #5a4a35;
-            transition: transform 0.3s;
-        }
-
-        .score-card:last-child {
-            background: linear-gradient(145deg, #2a4a3a, #1f3a2a);
-            border-color: #3a5a4a;
-        }
-
-        .score-card:hover {
-            transform: scale(1.05);
-        }
-
         .player-banner {
             display: flex;
             align-items: center;
@@ -790,6 +763,102 @@
             border-color: #8b7355;
         }
 
+        /* Rules Modal */
+        .rules-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .rules-modal.show {
+            display: flex;
+        }
+
+        .rules-content {
+            background: linear-gradient(145deg, #2d2418, #1f1a14);
+            border: 2px solid #6b5a45;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.6), 0 0 40px rgba(180, 140, 80, 0.15);
+            position: relative;
+        }
+
+        .rules-content::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .rules-content::-webkit-scrollbar-track {
+            background: #1a1510;
+            border-radius: 4px;
+        }
+
+        .rules-content::-webkit-scrollbar-thumb {
+            background: #4a3c2a;
+            border-radius: 4px;
+        }
+
+        .rules-content::-webkit-scrollbar-thumb:hover {
+            background: #5a4a35;
+        }
+
+        .rules-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border: 1px solid #4a3c2a;
+            background: linear-gradient(145deg, #3a3025, #2a231b);
+            color: #a89070;
+            font-size: 1.2em;
+            cursor: pointer;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            padding: 0;
+        }
+
+        .rules-close:hover {
+            background: linear-gradient(145deg, #4a4035, #3a3025);
+            color: #c9a961;
+            border-color: #6b5a45;
+        }
+
+        .rules-text {
+            font-family: 'Crimson Text', Georgia, serif;
+            font-size: 1em;
+            line-height: 1.6;
+            color: #b8a888;
+            white-space: pre-wrap;
+        }
+
+        .rules-text .highlight-a {
+            color: #c9a961;
+            font-weight: 600;
+        }
+
+        .rules-text .highlight-b {
+            color: #d4c4a8;
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 1.1em;
+        }
+
+        .rules-text .highlight-c {
+            color: #90b0a0;
+            font-weight: 600;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             h1 { font-size: 1.8em; }
@@ -799,6 +868,7 @@
             .pits-row { gap: 6px; }
             .settings { padding: 10px 15px; }
             .lang-selector { left: 75px; }
+            .rules-content { padding: 20px; }
         }
     </style>
 </head>
@@ -861,11 +931,6 @@
             <button onclick="newGame()" id="newGameBtn">New Game</button>
         </div>
 
-        <div class="score-board">
-            <div class="score-card"><span id="labelYou">You:</span> <span id="playerScore">0</span></div>
-            <div class="score-card"><span id="labelRobot">Opponent:</span> <span id="computerScore">0</span></div>
-        </div>
-
         <div class="player-banner computer" id="computerLabel">Opponent</div>
         <div class="board-wrapper">
             <div class="board" id="board"></div>
@@ -884,6 +949,15 @@
         <div class="controls">
             <button class="secondary" onclick="getHint()" id="hintBtn">Hint</button>
             <button class="secondary" onclick="undoMove()" id="undoBtn">Undo</button>
+            <button class="secondary" onclick="showRules()" id="rulesBtn">Rules</button>
+        </div>
+    </div>
+
+    <!-- Rules Modal -->
+    <div class="rules-modal" id="rulesModal" onclick="hideRules(event)">
+        <div class="rules-content" onclick="event.stopPropagation()">
+            <button class="rules-close" onclick="hideRules()">&times;</button>
+            <div class="rules-text" id="rulesText"></div>
         </div>
     </div>
 
@@ -906,13 +980,55 @@
                 levelWizard: "Effendi",
                 labelYouFirst: "You go first",
                 newGame: "New Game",
-                labelYou: "You:",
-                labelRobot: "Opponent:",
                 computerLabel: "Opponent",
                 playerLabel: "You",
                 speedLabel: "Animation Speed",
                 hintBtn: "Hint",
                 undoBtn: "Undo",
+                rulesBtn: "Rules",
+                rules: [
+                    "^BS u p e r - K a l a h^B",
+                    "",
+                    "Kalah is an ancient African logic game. The rules are extremely simple. But despite the apparent",
+                    "simplicity, the game requires great mental effort and utmost concentration from the players.",
+                    "The game develops attentiveness, logical abilities, and spatial imagination.",
+                    "^ATwo^A players participate. Each has ^Asix pits^A, each initially containing ^Asix stones^A.",
+                    "Additionally, each player has one more pit called the ^Akalah^A.",
+                    "The kalah is always to the ^Aright^A of the player. Players ^Aalternate^A making moves —",
+                    "^Ataking all stones from any pit^A and placing them ^Acounter-clockwise^A into all subsequent pits, including their own kalah and the opponent's pits, but ^Aexcluding the opponent's kalah^A. If a move ends in the kalah,",
+                    "the player ^Amust^A make another move. If a ^Amove ends in their own empty pit^A",
+                    "such that the opponent's pit opposite contains stones, then ^Aall stones^A from",
+                    "the opponent's pit and their own pit are ^Amoved to the kalah^A of the player",
+                    "who made the move. If at the time of the next move the player has ^Aall pits^A",
+                    "^Aempty, the game ends^A and all stones from the opponent's pits are moved to",
+                    "the opponent's kalah.",
+                    "The player who collects more stones in their kalah by the end — wins.",
+                    "",
+                    "Unlike the classic version (6 pits with 6 stones), in ^BSuper-Kalah^B you can",
+                    "have ^Aany number of pits^A, initially containing ^Aany number of stones^A.",
+                    "However, the maximum number of pits cannot exceed ^A17^A (this limitation is",
+                    "related to fitting the game board on the display).",
+                    "",
+                    "The computer plays as one of the players.",
+                    "",
+                    "The game has several ^Adifficulty levels^A:",
+                    "",
+                    "             ^C1^C — novice;",
+                    "             ^C2^C — candidate;",
+                    "             ^C3^C — master;",
+                    "             ^C4^C — effendi.",
+                    "",
+                    "As the ^Adifficulty level^A increases, the program's thinking time",
+                    "and playing strength increase.",
+                    "",
+                    "",
+                    "        I wish you success and a pleasant time!",
+                    "",
+                    "",
+                    "        ^CAuthor of the algorithm and program developer:^C",
+                    "",
+                    "             ^BStudenikin Valery Alekseevich^B"
+                ],
                 kalahYou: "YOU",
                 kalahRobot: "OPP",
                 // Messages
@@ -963,13 +1079,12 @@
                 levelWizard: "Эфенди",
                 labelYouFirst: "Вы ходите первым",
                 newGame: "Новая игра",
-                labelYou: "Вы:",
-                labelRobot: "Соперник:",
                 computerLabel: "Соперник",
                 playerLabel: "Вы",
                 speedLabel: "Скорость анимации",
                 hintBtn: "Подсказка",
                 undoBtn: "Отмена",
+                rulesBtn: "Правила",
                 kalahYou: "ВЫ",
                 kalahRobot: "СОП",
                 // Messages
@@ -1006,7 +1121,54 @@
                 ],
                 // Advice prompt
                 msgWantAdvice: "Желаете получить совет?",
-                msgAdvice: "Советую сделать ход из лунки {n}"
+                msgAdvice: "Советую сделать ход из лунки {n}",
+                rules: [
+                    "^BС у п е р - К а л а х^B",
+                    "",
+                    "Калах — древняя африканская логическая игра. Правила игры предельно просты.",
+                    "Но несмотря на кажущуюся простоту — игра требует от игроков большого",
+                    "умственного напряжения и предельного сосредоточения.",
+                    "Игра развивает внимательность, логические способности и пространственное воображение.",
+                    "В игре учавствуют ^Aдвое^A. У каждого имеется по ^Aшесть лунок^A, в каждой из которых",
+                    "вначале лежит по ^Aшесть камней^A.",
+                    "Дополнительно каждый игрок имеет еще одну лунку, которая называется ^Aкалах^A.",
+                    "Лунка калах всегда находится ^Aсправа^A от игрока. Игроки ^Aпоочередно^A делают ход —",
+                    "^Aберут все камни из какой-либо лунки^A и раскладывают их ^Aпротив часовой стрелки^A",
+                    "во все последующие лунки, включая свой калах и лунки противника,",
+                    "но ^Aисключая калах противника^A. Если ход кончается в калахе, то игрок ^Aдолжен^A",
+                    "сделать еще один ход. Если ^Aход заканчивается в своей пустой лунке^A так, что",
+                    "в лунке противника напротив имеются камни, то ^Aвсе камни^A из лунки противника",
+                    "и этой своей лунки ^Aперекладываются в калах^A делавшего ход игрока.",
+                    "Если к моменту выполнения очередного хода у игрока ^Aвсе лунки пусты,^A",
+                    "^Aто игра заканчивается^A и все камни из лунок противника перекладываются",
+                    "в калах противника.",
+                    "Игрок, набравший к концу игры в калахе большее число камней — выигрывает.",
+                    "",
+                    "В отличие от классического варианта (6 лунок по 6 камней), в ^BСупер-Калах^B",
+                    "можно иметь ^Aпроизвольное число лунок^A, которые изначально содержат",
+                    "^Aпроизвольное число камней^A. Однако, максимальное количество лунок не может",
+                    "превышать ^A17^A (это ограничение связано с размещением на дисплее игрового поля).",
+                    "",
+                    "За одного игрока играет компьютер.",
+                    "",
+                    "Игра имеет несколько ^Aуровней сложности^A:",
+                    "",
+                    "             ^C1^C — новичок;",
+                    "             ^C2^C — кандидат;",
+                    "             ^C3^C — мастер;",
+                    "             ^C4^C — эфенди.",
+                    "",
+                    "При увеличении ^Aуровня сложности^A время обдумывания программой",
+                    "очередного хода и её сила игры увеличиваются.",
+                    "",
+                    "",
+                    "        Желаю Вам успеха и приятно провести время!",
+                    "",
+                    "",
+                    "        ^CАвтор алгоритма и разработчик программы:^C",
+                    "",
+                    "             ^BСтуденикин Валерий Алексеевич^B"
+                ]
             }
         };
 
@@ -1034,13 +1196,12 @@
             document.getElementById('levelWizard').textContent = t.levelWizard;
             document.getElementById('labelYouFirst').textContent = t.labelYouFirst;
             document.getElementById('newGameBtn').textContent = t.newGame;
-            document.getElementById('labelYou').textContent = t.labelYou;
-            document.getElementById('labelRobot').textContent = t.labelRobot;
             document.getElementById('computerLabel').textContent = t.computerLabel;
             document.getElementById('playerLabel').textContent = t.playerLabel;
             document.getElementById('speedLabel').textContent = t.speedLabel;
             document.getElementById('hintBtn').textContent = t.hintBtn;
             document.getElementById('undoBtn').textContent = t.undoBtn;
+            document.getElementById('rulesBtn').textContent = t.rulesBtn;
 
             // Update page title
             document.title = lang === 'ru' ? 'Супер-Калах' : 'Super-Kalah';
@@ -1271,7 +1432,6 @@
             setTimeout(() => playTone(659, 0.1), 100);
 
             renderBoard();
-            updateScores();
             updateMessage();
 
             if (!game.isPlayerTurn) {
@@ -1447,11 +1607,6 @@
             kalah.innerHTML = count + `<span class="kalah-label">${label}</span>`;
         }
 
-        function updateScores() {
-            document.getElementById('playerScore').textContent = game.playerKalah;
-            document.getElementById('computerScore').textContent = game.computerKalah;
-        }
-
         function getRandomEndMessage(isWin) {
             const messages = isWin ? translations[currentLang].msgYouWin : translations[currentLang].msgYouLose;
             return messages[Math.floor(Math.random() * messages.length)];
@@ -1515,7 +1670,6 @@
             game.gameOver = state.gameOver;
 
             renderBoard();
-            updateScores();
             updateMessage();
         }
 
@@ -1959,9 +2113,6 @@
             game.playerKalah = plan.finalState.playerKalah;
             game.computerKalah = plan.finalState.computerKalah;
 
-            // Update all displays to match final state
-            updateScores();
-
             return { status: plan.status };
         }
 
@@ -2044,7 +2195,6 @@
             }
 
             renderBoard();
-            updateScores();
             validateStoneCount();  // Debug assertion
 
             if (result.status !== MoveStatus.EXTRA_TURN) {
@@ -2207,7 +2357,6 @@
                 game.isAnimating = false;
                 setControlsEnabled(true);
                 renderBoard();
-                updateScores();
                 updateMessage();
                 return;
             }
@@ -2231,7 +2380,6 @@
             }
 
             renderBoard();
-            updateScores();
             validateStoneCount();  // Debug assertion
             updateMessage();
         }
@@ -2309,6 +2457,44 @@
             }
         `;
         document.head.appendChild(style);
+
+        // ===================
+        // RULES MODAL
+        // ===================
+        function formatRulesText(rulesArray) {
+            return rulesArray.map(line => {
+                // Replace ^B...^B with title styling
+                line = line.replace(/\^B([^^]*)\^B/g, '<span class="highlight-b">$1</span>');
+                // Replace ^A...^A with emphasis styling
+                line = line.replace(/\^A([^^]*)\^A/g, '<span class="highlight-a">$1</span>');
+                // Replace ^C...^C with accent styling
+                line = line.replace(/\^C([^^]*)\^C/g, '<span class="highlight-c">$1</span>');
+                return line;
+            }).join('\n');
+        }
+
+        function showRules() {
+            const rules = translations[currentLang].rules;
+            const rulesText = document.getElementById('rulesText');
+            rulesText.innerHTML = formatRulesText(rules);
+            document.getElementById('rulesModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideRules(event) {
+            if (event && event.target !== document.getElementById('rulesModal')) {
+                return;
+            }
+            document.getElementById('rulesModal').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && document.getElementById('rulesModal').classList.contains('show')) {
+                hideRules();
+            }
+        });
 
         // Load language and start game
         loadLanguage();
