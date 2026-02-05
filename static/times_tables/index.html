@@ -1352,7 +1352,7 @@
           hidePopup(() => {
             // Celebration animation on cell
             solvedCell.element.classList.add('solved', 'just-solved');
-            solvedCell.element.textContent = correct;
+            solvedCell.element.textContent = state.currentOperation === 'division' ? '✓' : correct;
 
             // Remove animation class after it completes
             setTimeout(() => {
