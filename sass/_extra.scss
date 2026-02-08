@@ -40,23 +40,23 @@ iframe {
 
 // === TYPOGRAPHY HIERARCHY ===
 
-// Headers - mint green with subtle glow
+// Headers - clean hierarchy, no glow
 h1 {
-  color: $accent-green !important;
-  text-shadow: 0 0 10px rgba($accent-green, 0.5);
+  color: $text-bright !important;
 }
 
 h2 {
-  color: lighten($accent-green, 10%) !important;
-  text-shadow: 0 0 8px rgba($accent-green, 0.3);
+  color: darken($text-bright, 8%) !important;
+  border-bottom: 1px solid rgba($accent-green, 0.15);
+  padding-bottom: 0.3rem;
 }
 
 h3 {
-  color: lighten($accent-green, 20%) !important;
+  color: darken($text-bright, 15%) !important;
 }
 
 h4, h5, h6 {
-  color: $text-bright !important;
+  color: darken($text-bright, 20%) !important;
 }
 
 // === LINKS - Cyan for visibility ===
@@ -151,10 +151,10 @@ article {
 
 // Article titles
 article h1 a, article h2 a, article h3 a {
-  color: $accent-green !important;
+  color: $text-bright !important;
 
   &:hover {
-    color: lighten($accent-green, 15%) !important;
+    color: $accent-cyan !important;
   }
 }
 
