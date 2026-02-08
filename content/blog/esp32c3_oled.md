@@ -16,6 +16,9 @@ There's something deeply satisfying about a microcontroller you can actually und
 
 The board I've been working with is the 01space ESP32-C3 0.42" OLED — a tiny PCB, barely larger than your thumb, with a 72x40 pixel SSD1306 OLED soldered directly onto it. No wiring, no breadboard, no jumper cables. Plug it into USB and you have a complete computer with a display.
 
+
+{{ image(sources=["/esp32c3_oled/esp32c3_oled_pinout.jpg"]) }}
+
 ## The Arduino Baseline: It Just Works
 
 In the Arduino ecosystem, getting pixels on this display takes about five minutes. The U8g2 library handles everything:
@@ -217,6 +220,10 @@ CONFIG_I2C=y
 ```
 
 Clean bouncing ball, no artifacts.
+
+Full source of the app with the project setup can be found on [GitHub](https://github.com/justpresident/romst.com/tree/main/static/esp32c3_oled/display-test)
+
+{{ video(sources=["/esp32c3_oled/bouncing_ball.mp4"]) }}
 
 ## What I Learned
 
