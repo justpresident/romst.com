@@ -19,10 +19,31 @@ $accent-amber: #ffaa00;      // Tags, warnings
 $accent-magenta: #ff66ff;    // Special highlights
 $accent-red: #ff4444;        // Errors, alerts
 
-// Force dark background everywhere
+// Force dark background everywhere + circuit board traces
 html, body {
   background-color: $bg-primary !important;
   min-height: 100%;
+  background-image:
+    // Fine grid
+    linear-gradient(0deg, rgba($accent-green, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba($accent-green, 0.03) 1px, transparent 1px),
+    // Thicker lines every 4th
+    linear-gradient(0deg, rgba($accent-green, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba($accent-green, 0.05) 1px, transparent 1px),
+    // Via dots at intersections
+    radial-gradient(circle, rgba($accent-green, 0.08) 1px, transparent 1px);
+  background-size:
+    20px 20px,
+    20px 20px,
+    80px 80px,
+    80px 80px,
+    80px 80px;
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    10px 10px;
 }
 
 main, article, section, div, header, footer {
@@ -177,7 +198,7 @@ header big a::after {
   50% { opacity: 0; }
 }
 
-// Subtle scanline effect (optional - comment out if too much)
+// Scanlines
 body::before {
   content: "";
   position: fixed;
@@ -194,6 +215,23 @@ body::before {
     transparent 2px
   );
   z-index: 9999;
+}
+
+// Edge vignette
+body::after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 9997;
+  background: radial-gradient(
+    ellipse at 50% 50%,
+    transparent 40%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
 }
 
 // === FORM ELEMENTS ===
